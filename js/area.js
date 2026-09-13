@@ -1,77 +1,94 @@
 // area
-
 const badAreaArray = ["遮擋", "護網", "鐵網", "不完整"];
+
+function runAutoClickArea(keywordString, tieBreak, neededTickets) {
+  // no keywords means every area is acceptable
+  let keywords = keywordString.length ? keywordString.split(',') : [];
+  let candidates = [];
+
+  document.querySelectorAll("ul.area-list > li").forEach((li, domIndex) => {
+    if (li.offsetParent === null) return; // hidden by HideBadArea/HideDisabledArea/ShowOnlyArea
+
+    let a = li.querySelector("a");
+    if (!a) return; // sold out / unavailable, no link to click
+
+    let text = li.textContent;
+    let keywordIndex = keywords.length ? keywords.findIndex(el => text.includes(el)) : 0;
+    if (keywordIndex === -1) return;
+
+    let hot = text.includes("熱賣中");
+    let match = text.match(/剩餘\s*(\d+)/);
+    let remaining = match ? parseInt(match[1], 10) : -1;
+    let enough = hot || remaining >= neededTickets; // just needs to be enough, not the most
+
+    candidates.push({ a, hot, enough, keywordIndex, domIndex, rand: Math.random() });
+  });
+
+  candidates.sort((a, b) => {
+    if (a.hot !== b.hot) return a.hot ? -1 : 1;
+    if (a.enough !== b.enough) return a.enough ? -1 : 1;
+
+    // tie: fall back to the user's chosen preference
+    switch (tieBreak) {
+      case "top": return a.domIndex - b.domIndex;
+      case "bottom": return b.domIndex - a.domIndex;
+      case "random": return a.rand - b.rand;
+      case "keyword":
+      default: return a.keywordIndex - b.keywordIndex;
+    }
+  });
+
+  if (candidates.length) {
+    candidates[0].a.click();
+  }
+}
 
 chrome.storage.local.get({
   HideBadArea: false,
+  HideDisabledArea: false,
   ShowOnlyArea: false,
-  AreaName: ""
+  AreaName: "",
+  AutoClickArea: false,
+  AutoClickAreaName: "",
+  AutoClickTieBreak: "keyword",
+  TicketNumber: 0
 }, items => {
+  // TicketNumber 0 means "max available", so any ticket at all counts as enough
+  let neededTickets = items.TicketNumber > 0 ? parseInt(items.TicketNumber, 10) : 1;
+
   if (items.ShowOnlyArea && items.AreaName.length) {
-    var AreaNameArray = items.AreaName.split(',');
-    console.log(AreaNameArray);
-    $("ul.area-list > li").each(function(index) {
-        if (AreaNameArray.some(el => $(this).text().includes(el))) {
-            // $(this).show();
-        } else {
-            $(this).hide();
-        }
+    let AreaNameArray = items.AreaName.split(',');
+    document.querySelectorAll("ul.area-list > li").forEach(li => {
+      if (!AreaNameArray.some(el => li.textContent.includes(el))) {
+        li.style.display = "none";
+      }
     });
   }
 
   if (items.HideBadArea) {
-    $("ul.area-list > li").each(function( index ) {
-      if (badAreaArray.some(el => $(this).text().includes(el))) {
-          $(this).hide();
+    document.querySelectorAll("ul.area-list > li").forEach(li => {
+      if (badAreaArray.some(el => li.textContent.includes(el))) {
+        li.style.display = "none";
       }
     });
   }
+
+  if (items.HideDisabledArea) {
+    document.querySelectorAll("ul.area-list > li").forEach(li => {
+      if (li.textContent.includes("身障")) {
+        li.style.display = "none";
+      }
+    });
+  }
+
+  if (items.AutoClickArea) {
+    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets);
+  }
+
+  addClockWidget(items.AutoClickArea, () => runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets));
 });
 
 // hide no link area
-$("ul.area-list > li:not(:has(a))").hide();
-
-// let actualCode = `
-// setTimeout(function() {
-//   document.dispatchEvent(new CustomEvent('connectExtension', {detail: areaUrlList}));
-// }, 0);
-// `;
-// let script = document.createElement('script');
-// script.textContent = actualCode;
-// (document.head||document.documentElement).appendChild(script);
-// script.remove();
-
-// Event listener
-// document.addEventListener('connectExtension', function(e) {
-//   let msg = {
-//     title: $(".activityT.title").text(),
-//     date: $(".select01 :selected").text().substr(0, 14),
-//     url: location.origin,
-//     list: []
-//   };
-//   //console.log(e.detail);
-//   $("ul.area-list > li.select_form_b a, ul.area-list > li.select_form_a a").each(function(index) {
-//     let id = $(this).attr("id");
-//     let text = $(this).text();
-//     let url = e.detail[id];
-//     msg.list.push({text, url, id});
-//     console.log("find area info " + text + " - " + url);
-//   });
-
-//   chrome.runtime.sendMessage(msg);
-// });
-
-
-/*
-let scripts = document.getElementsByTagName('script');
-console.log("scripts number " + scripts.length);
-for (let i = 0; i < scripts.length; i++) {
-  let data = scripts[i].innerHTML;
-  if (data.includes("areaUrlList")) {
-    console.log("hit script " + i);
-    data = data.substr(data.indexOf("areaUrlList"), 300);
-    console.log(data);
-    break;
-  }
-}
-*/
+document.querySelectorAll("ul.area-list > li").forEach(li => {
+  if (!li.querySelector("a")) li.style.display = "none";
+});

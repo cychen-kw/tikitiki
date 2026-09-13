@@ -14,27 +14,27 @@
     {
       "matches" : [ "https://tixcraft.com/ticket/ticket/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/ticket.js" ]
+      "js" : [ "js/widget.js", "js/ticket.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/area/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/area.js" ]
+      "js" : [ "js/widget.js", "js/area.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/game/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/gamelink.js", "js/game.js" ]
+      "js" : [ "js/widget.js", "js/gamelink.js", "js/game.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/detail/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/gamelink.js", "js/detail.js" ]
+      "js" : [ "js/widget.js", "js/gamelink.js", "js/detail.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/verify.js" ]
+      "js" : [ "js/widget.js", "js/verify.js" ]
     }
   ],
   "manifest_version": 3

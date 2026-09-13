@@ -1,8 +1,13 @@
+function stripBrackets(str) {
+  return str.replace('「', '').replace('」', '');
+}
 
-// console.log($.fn.jquery);
+chrome.storage.local.get({ AutoClickArea: false }, items => {
+  addClockWidget(items.AutoClickArea);
+});
 
 // credit check
-let title = $(".activityT.title").text();
+let title = document.querySelector(".activityT.title")?.textContent || "";
 let num = "";
 
 if (title.includes("中信")) {
@@ -15,22 +20,32 @@ if (title.includes("中信")) {
   num = "";
 }
 
-let $agreeItem = $(".promo-desc font");
-if (num === "" && $agreeItem) {
-  let str = $agreeItem.text();
-  console.log(str);
-  num = str.replace('「', '').replace('」', '');
-}
-
-if ($("input[name=checkCode]").length) {
+let checkCodeInput = document.querySelector("input[name=checkCode]");
+if (checkCodeInput) {
   chrome.storage.local.get({
     VerifyCode: ""
   }, items => {
     if (num === "" && items.VerifyCode) {
       num = items.VerifyCode;
     }
-    console.log("num = " + num);
-    $("input[name=checkCode]").val(num).focus();
+
+    let agreeItems = document.querySelectorAll(".promo-desc font");
+    if (num === "" && agreeItems.length) {
+      let text = Array.from(agreeItems).map(el => el.textContent).join('');
+      num = stripBrackets(text);
+    }
+
+    checkCodeInput.value = num;
+    checkCodeInput.focus();
   });
 }
 
+// click the highlighted red text (tixcraft's actual instruction) to fill it in
+document.querySelectorAll(".promo-desc font[color]").forEach(font => {
+  font.style.cursor = "pointer";
+  font.addEventListener("click", () => {
+    if (!checkCodeInput) return;
+    checkCodeInput.value = stripBrackets(font.textContent);
+    checkCodeInput.focus();
+  });
+});

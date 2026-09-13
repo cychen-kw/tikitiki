@@ -5,22 +5,27 @@ function linkGameSessions() {
 
   function apply() {
     let linked = 0;
-    $("#gameList tbody tr").each(function() {
-      let $nameCell = $(this).find("td").eq(1);
-      if ($nameCell.find("a").length) {
+    document.querySelectorAll("#gameList tbody tr").forEach(tr => {
+      let nameCell = tr.querySelectorAll("td")[1];
+      if (!nameCell) return;
+      if (nameCell.querySelector("a")) {
         linked++;
         return;
       }
 
-      let link = $(this).find("button[data-href]").attr("data-href");
+      let button = tr.querySelector("button[data-href]");
+      let link = button ? button.getAttribute("data-href") : null;
       if (!link) {
-        let sessionId = $(this).attr("data-key");
+        let sessionId = tr.getAttribute("data-key");
         if (sessionId) {
           link = "https://tixcraft.com/ticket/area/" + activityId + "/" + sessionId;
         }
       }
       if (link) {
-        $nameCell.wrapInner($("<a>").attr("href", link));
+        let a = document.createElement("a");
+        a.href = link;
+        while (nameCell.firstChild) a.appendChild(nameCell.firstChild);
+        nameCell.appendChild(a);
         linked++;
       }
     });
@@ -35,4 +40,7 @@ function linkGameSessions() {
     if (apply() > 0) observer.disconnect();
   });
   observer.observe(document.body, { childList: true, subtree: true });
+
+  // give up after 30s in case this page never gets a #gameList (no ajax fired)
+  setTimeout(() => observer.disconnect(), 30000);
 }

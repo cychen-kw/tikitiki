@@ -16,28 +16,60 @@
       <span>自動隱藏 "遮擋", "護網", "鐵網", "不完整" 區</span>
     </label>
     <label class="row">
+      <input type="checkbox" id="HideDisabledArea" class='option' />
+      <span>自動隱藏身障區</span>
+    </label>
+    <label class="row">
       <input type="checkbox" id="ShowOnlyArea" class='option' />
       <span>僅顯示這些區域，名稱用逗點隔開。( Ex. A區,B區 )</span>
     </label>
-    <input type="text" id="AreaName" class="indent">
+    <div class="tag-input-row indent">
+      <div class="tag-input" id="AreaNameBox">
+        <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+      </div>
+      <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
+    </div>
+    <input type="hidden" id="AreaName">
+  </div>
+
+  <div class="group">
+    <label class="row">
+      <input type="checkbox" id="AutoClickArea" class='option' />
+      <span>自動點擊符合關鍵字的區域，名稱用逗點隔開，不會隱藏其他區域。優先點擊「熱賣中」，其次剩餘張數多的區域。</span>
+    </label>
+    <div class="tag-input-row indent">
+      <div class="tag-input" id="AutoClickAreaNameBox">
+        <input type="text" id="AutoClickAreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+      </div>
+      <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
+    </div>
+    <input type="hidden" id="AutoClickAreaName">
+
+    <label class="field-label indent" style="margin-top:12px;">遇到熱賣程度、剩餘張數都一樣時，優先點擊：</label>
+    <div class="radio-group indent">
+      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top"> 畫面排前面的（通常較貴）</label>
+      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom"> 畫面排後面的（通常較便宜）</label>
+      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword"> 依關鍵字輸入的先後順序</label>
+      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random"> 隨機</label>
+    </div>
   </div>
 
   <div class="group">
     <label class="row">
       <input type="checkbox" id="ProgramOnly" class='option' />
-      <span>只顯示立即購票視窗。</span>
+      <span>自動跳過節目介紹頁，直接前往場次列表。</span>
     </label>
   </div>
 
   <div class="group">
     <label class="field-label">張數選擇</label>
-    <select id="TicketNumber">
-      <option value="0">最大張數</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>
+    <div class="radio-group">
+      <label class="radio-option"><input type="radio" name="TicketNumber" value="0"> 最大張數</label>
+      <label class="radio-option"><input type="radio" name="TicketNumber" value="1"> 1</label>
+      <label class="radio-option"><input type="radio" name="TicketNumber" value="2"> 2</label>
+      <label class="radio-option"><input type="radio" name="TicketNumber" value="3"> 3</label>
+      <label class="radio-option"><input type="radio" name="TicketNumber" value="4"> 4</label>
+    </div>
   </div>
 
   <div class="group">
