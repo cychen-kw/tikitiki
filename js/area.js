@@ -17,8 +17,10 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
     if (keywordIndex === -1) return;
 
     if (!allowInsufficient) {
-      let hot = text.includes("熱賣中");
-      let match = text.match(/剩餘\s*(\d+)/);
+      // area names and bad-area labels stay Chinese even in English mode,
+      // but the hot/remaining status text is translated, so match both
+      let hot = text.includes("熱賣中") || text.includes("Available");
+      let match = text.match(/剩餘\s*(\d+)/) || text.match(/(\d+)\s*seat\(s\)\s*remaining/i);
       let remaining = match ? parseInt(match[1], 10) : -1;
       if (!hot && remaining < neededTickets) return; // not enough tickets, skip
     }

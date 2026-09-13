@@ -3,7 +3,7 @@ addClockWidget();
 
 // login check
 let loginText = document.querySelector(".account-login")?.textContent || "";
-if (loginText.includes("會員登入")) {
+if (loginText.includes("會員登入") || loginText.includes("Sign In")) {
   let todayDate = new Date().toISOString().slice(0, 10);
 
   chrome.storage.local.get({

@@ -1,8 +1,6 @@
 // floating clock + auto-click quick toggle, shared across area/detail/game/verify/ticket pages
 function addClockWidget(onToggleOn) {
-  chrome.storage.local.get({ WidgetEnabled: true, AutoClickArea: false }, items => {
-    if (!items.WidgetEnabled) return;
-
+  chrome.storage.local.get({ AutoClickArea: false }, items => {
     if (!document.getElementById("tikitikiWidgetStyle")) {
       let style = document.createElement("style");
       style.id = "tikitikiWidgetStyle";
@@ -28,8 +26,7 @@ function addClockWidget(onToggleOn) {
       "align-items:center;justify-content:center;cursor:pointer;color:#999;" +
       "font-size:15px;line-height:1;border-radius:50%;";
     widget.innerHTML =
-      '<span id="tikitikiMinimize" title="縮小" style="' + btnStyle + 'right:24px;">–</span>' +
-      '<span id="tikitikiClose" title="關閉小工具" style="' + btnStyle + 'right:2px;">✕</span>' +
+      '<span id="tikitikiMinimize" title="縮小" style="' + btnStyle + 'right:2px;">–</span>' +
       '<div id="tikitikiBrand" style="font-size:10px;letter-spacing:.5px;color:#d0333c;' +
         'font-weight:700;margin-bottom:2px;">🎟️ tikitiki</div>' +
       '<div id="tikitikiClock" style="font-size:20px;font-weight:700;color:#222;' +
@@ -49,23 +46,14 @@ function addClockWidget(onToggleOn) {
       clock.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
     }
     tick();
-    let tickInterval = setInterval(tick, 1000);
-
-    let closeBtn = widget.querySelector("#tikitikiClose");
-    closeBtn.addEventListener("click", () => {
-      chrome.storage.local.set({ WidgetEnabled: false });
-      clearInterval(tickInterval);
-      widget.remove();
-    });
+    setInterval(tick, 1000);
 
     let brand = widget.querySelector("#tikitikiBrand");
     let toggleRow = widget.querySelector("#tikitikiToggleRow");
     let minimizeBtn = widget.querySelector("#tikitikiMinimize");
 
-    [closeBtn, minimizeBtn].forEach(btn => {
-      btn.addEventListener("mouseenter", () => btn.style.background = "#f2f2f2");
-      btn.addEventListener("mouseleave", () => btn.style.background = "transparent");
-    });
+    minimizeBtn.addEventListener("mouseenter", () => minimizeBtn.style.background = "#f2f2f2");
+    minimizeBtn.addEventListener("mouseleave", () => minimizeBtn.style.background = "transparent");
 
     let minimized = false;
     minimizeBtn.addEventListener("click", () => {
