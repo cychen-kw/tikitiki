@@ -7,65 +7,51 @@
 </head>
 <body>
 
-<h2>購票輔助程式設定頁面<span id="ver"></span></h2>
+<div class="card">
+  <h2>tikitiki 設定頁面<span id="ver"></span></h2>
 
-<div>
-  <input type="checkbox" id="HideBadArea" class='option' />
-  <label>自動隱藏 "遮擋", "護網", "鐵網", "不完整" 區</label>
-  <br>
-  <br>
-  <input type="checkbox" id="ShowOnlyArea" class='option' />
-  <label>僅顯示這些區域，名稱用逗點隔開。( Ex. A區,B區 )</label>
-  <br>
-  <input type="text" id="AreaName" style="margin-left: 24px;">
-  <br>
-  <br>
-  <input type="checkbox" id="ProgramOnly" class='option' />
-  <label>只顯示立即購票視窗。</label>
-  <br>
-  <br>
-  <input type="checkbox" id="ProgramAuto" class='option' />
-  <label>自動點選節目日期一。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto2" class='option' />
-  <label>自動點選節目日期二。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto3" class='option' />
-  <label>自動點選節目日期三。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto4" class='option' />
-  <label>自動點選節目日期四。</label>
-  <br>
-  <br>
-  <label>節目日期 :</label>
-  <br>
-  <input type="date" id="ProgramDate">
-  <br>
-  <br>
-  <label>張數選擇 :</label>
-  <br>
-  <select id="TicketNumber">
-    <option value="0">最大張數</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
-  <br>
+  <div class="group">
+    <label class="row">
+      <input type="checkbox" id="HideBadArea" class='option' />
+      <span>自動隱藏 "遮擋", "護網", "鐵網", "不完整" 區</span>
+    </label>
+    <label class="row">
+      <input type="checkbox" id="ShowOnlyArea" class='option' />
+      <span>僅顯示這些區域，名稱用逗點隔開。( Ex. A區,B區 )</span>
+    </label>
+    <input type="text" id="AreaName" class="indent">
+  </div>
+
+  <div class="group">
+    <label class="row">
+      <input type="checkbox" id="ProgramOnly" class='option' />
+      <span>只顯示立即購票視窗。</span>
+    </label>
+  </div>
+
+  <div class="group">
+    <label class="field-label">張數選擇</label>
+    <select id="TicketNumber">
+      <option value="0">最大張數</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+  </div>
+
+  <div class="group">
+    <label class="field-label">驗證碼自訂字串（銀行自動偵測失敗時使用）</label>
+    <input type="text" id="VerifyCode">
+    <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
+  </div>
+
+  <div class="footer">
+    <button id="save">Save</button>
+    <span id="status"></span>
+  </div>
 </div>
 
-<div id="status"></div>
-<br>
-<button id="save">Save</button>
-<br>
-<br>
-<hr>
-<!--
-<h3>最後的活動記錄</h3>
-<div id="ProgramTitle">節目名稱 : </div>
-<br>
-<div id="AreaList"></div>
--->
 <script src="options.js"></script>
 </body>
 </html>

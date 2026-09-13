@@ -1,5 +1,5 @@
 {
-  "name": "tixCraft Support",
+  "name": "tikitiki",
   "description": "購票輔助程式",
   "version": "2.0.2",
   "permissions": [ "activeTab", "storage" ],
@@ -17,19 +17,19 @@
       "js" : [ "jquery.min.js", "js/ticket.js" ]
     },
     {
-      "matches" : [ "https://tixcraft.com/activity/game/*" ],
-      "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/game.js" ]
-    },
-    {
       "matches" : [ "https://tixcraft.com/ticket/area/*" ],
       "run_at": "document_end",
       "js" : [ "jquery.min.js", "js/area.js" ]
     },
     {
+      "matches" : [ "https://tixcraft.com/activity/game/*" ],
+      "run_at": "document_end",
+      "js" : [ "jquery.min.js", "js/gamelink.js", "js/game.js" ]
+    },
+    {
       "matches" : [ "https://tixcraft.com/activity/detail/*" ],
       "run_at": "document_end",
-      "js" : [ "jquery.min.js", "js/detail.js" ]
+      "js" : [ "jquery.min.js", "js/gamelink.js", "js/detail.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],

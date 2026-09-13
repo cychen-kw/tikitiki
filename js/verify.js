@@ -23,7 +23,14 @@ if (num === "" && $agreeItem) {
 }
 
 if ($("input[name=checkCode]").length) {
-  console.log("num = " + num);
-  $("input[name=checkCode]").val(num).focus();
+  chrome.storage.local.get({
+    VerifyCode: ""
+  }, items => {
+    if (num === "" && items.VerifyCode) {
+      num = items.VerifyCode;
+    }
+    console.log("num = " + num);
+    $("input[name=checkCode]").val(num).focus();
+  });
 }
 
