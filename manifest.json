@@ -35,6 +35,11 @@
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],
       "run_at": "document_end",
       "js" : [ "js/widget.js", "js/verify.js" ]
+    },
+    {
+      "matches" : [ "https://kktix.com/events/*/registrations/new*" ],
+      "run_at": "document_idle",
+      "js" : [ "js/kktix.js" ]
     }
   ],
   "manifest_version": 3

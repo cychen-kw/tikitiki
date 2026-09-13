@@ -120,3 +120,13 @@ setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAre
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click', save_options);
 document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest().version;
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('main.sections').forEach(main => {
+            main.hidden = main.id !== 'tab-' + btn.dataset.tab;
+        });
+    });
+});

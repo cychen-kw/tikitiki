@@ -7,6 +7,14 @@
   --text-muted: #767676;
   --bg: #f2f3f5;
   --surface: #fff;
+
+  /* per-platform theme colors, applied to the matching tab */
+  --tixcraft: #1a56b0;
+  --tixcraft-dark: #123f85;
+  --tixcraft-tint: #dbe7fa;
+  --kktix: #4c9c2e;
+  --kktix-dark: #3a7a22;
+  --kktix-tint: #e3f3d7;
 }
 
 * {
@@ -105,12 +113,64 @@ body {
   opacity: 1;
 }
 
+/* tabs */
+
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 4px 10px;
+  margin-bottom: -1px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab-btn[data-tab="tixcraft"].active {
+  color: var(--tixcraft);
+  border-bottom-color: var(--tixcraft);
+}
+
+.tab-btn[data-tab="kktix"].active {
+  color: var(--kktix);
+  border-bottom-color: var(--kktix);
+}
+
 /* sections */
 
 .sections {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.sections[hidden] {
+  display: none;
+}
+
+#tab-tixcraft {
+  --accent: var(--tixcraft);
+  --accent-dark: var(--tixcraft-dark);
+  --accent-tint: var(--tixcraft-tint);
+}
+
+#tab-kktix {
+  --accent: var(--kktix);
+  --accent-dark: var(--kktix-dark);
+  --accent-tint: var(--kktix-tint);
 }
 
 .card {
@@ -127,6 +187,11 @@ body {
   margin: 0 0 14px;
   font-size: 15px;
   font-weight: 700;
+  color: var(--accent);
+}
+
+.card {
+  border-top: 3px solid var(--accent);
 }
 
 .card-icon {

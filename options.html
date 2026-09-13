@@ -22,7 +22,12 @@
 
   <div id="status" class="toast"></div>
 
-  <main class="sections">
+  <div class="tab-bar">
+    <button type="button" class="tab-btn active" data-tab="tixcraft">🎫 拓元 tixCraft</button>
+    <button type="button" class="tab-btn" data-tab="kktix">🎟️ KKTIX</button>
+  </div>
+
+  <main class="sections" id="tab-tixcraft">
 
     <section class="card">
       <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
@@ -105,6 +110,15 @@
       <div class="field-label">自訂字串（銀行自動偵測失敗時使用）</div>
       <input type="text" id="VerifyCode" placeholder="例如信用卡卡號前六碼">
       <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
+    </section>
+
+  </main>
+
+  <main class="sections" id="tab-kktix" hidden>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">✅</span>報名頁面</h2>
+      <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」，目前沒有可調整的設定。</p>
     </section>
 
   </main>
