@@ -1,8 +1,5 @@
 // ticket
-
-chrome.storage.local.get({ AutoClickArea: false }, items => {
-  addClockWidget(items.AutoClickArea);
-});
+addClockWidget();
 
 let ticketOptions = document.querySelectorAll("#ticketPriceList select:first-of-type option");
 if (ticketOptions.length) {

@@ -1,7 +1,7 @@
 // area
 const badAreaArray = ["遮擋", "護網", "鐵網", "不完整"];
 
-function runAutoClickArea(keywordString, tieBreak, neededTickets) {
+function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient) {
   // no keywords means every area is acceptable
   let keywords = keywordString.length ? keywordString.split(',') : [];
   let candidates = [];
@@ -16,19 +16,17 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets) {
     let keywordIndex = keywords.length ? keywords.findIndex(el => text.includes(el)) : 0;
     if (keywordIndex === -1) return;
 
-    let hot = text.includes("熱賣中");
-    let match = text.match(/剩餘\s*(\d+)/);
-    let remaining = match ? parseInt(match[1], 10) : -1;
-    let enough = hot || remaining >= neededTickets; // just needs to be enough, not the most
+    if (!allowInsufficient) {
+      let hot = text.includes("熱賣中");
+      let match = text.match(/剩餘\s*(\d+)/);
+      let remaining = match ? parseInt(match[1], 10) : -1;
+      if (!hot && remaining < neededTickets) return; // not enough tickets, skip
+    }
 
-    candidates.push({ a, hot, enough, keywordIndex, domIndex, rand: Math.random() });
+    candidates.push({ a, keywordIndex, domIndex, rand: Math.random() });
   });
 
   candidates.sort((a, b) => {
-    if (a.hot !== b.hot) return a.hot ? -1 : 1;
-    if (a.enough !== b.enough) return a.enough ? -1 : 1;
-
-    // tie: fall back to the user's chosen preference
     switch (tieBreak) {
       case "top": return a.domIndex - b.domIndex;
       case "bottom": return b.domIndex - a.domIndex;
@@ -51,6 +49,7 @@ chrome.storage.local.get({
   AutoClickArea: false,
   AutoClickAreaName: "",
   AutoClickTieBreak: "keyword",
+  AutoClickAllowInsufficient: false,
   TicketNumber: 0
 }, items => {
   // TicketNumber 0 means "max available", so any ticket at all counts as enough
@@ -82,10 +81,10 @@ chrome.storage.local.get({
   }
 
   if (items.AutoClickArea) {
-    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets);
+    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient);
   }
 
-  addClockWidget(items.AutoClickArea, () => runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets));
+  addClockWidget(() => runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient));
 });
 
 // hide no link area

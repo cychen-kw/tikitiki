@@ -2,9 +2,7 @@ function stripBrackets(str) {
   return str.replace('「', '').replace('」', '');
 }
 
-chrome.storage.local.get({ AutoClickArea: false }, items => {
-  addClockWidget(items.AutoClickArea);
-});
+addClockWidget();
 
 // credit check
 let title = document.querySelector(".activityT.title")?.textContent || "";
@@ -29,10 +27,12 @@ if (checkCodeInput) {
       num = items.VerifyCode;
     }
 
-    let agreeItems = document.querySelectorAll(".promo-desc font");
-    if (num === "" && agreeItems.length) {
-      let text = Array.from(agreeItems).map(el => el.textContent).join('');
-      num = stripBrackets(text);
+    let promoDesc = document.querySelector(".promo-desc");
+    if (num === "" && promoDesc) {
+      let stripped = stripBrackets(promoDesc.textContent.trim());
+      if (/^\d+$/.test(stripped)) {
+        num = stripped; // only auto-fill when it's actually a code, not instruction text
+      }
     }
 
     checkCodeInput.value = num;

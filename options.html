@@ -7,81 +7,115 @@
 </head>
 <body>
 
-<div class="card">
-  <h2>tikitiki 設定頁面<span id="ver"></span></h2>
+<div class="page">
 
-  <div class="group">
-    <label class="row">
-      <input type="checkbox" id="HideBadArea" class='option' />
-      <span>自動隱藏 "遮擋", "護網", "鐵網", "不完整" 區</span>
-    </label>
-    <label class="row">
-      <input type="checkbox" id="HideDisabledArea" class='option' />
-      <span>自動隱藏身障區</span>
-    </label>
-    <label class="row">
-      <input type="checkbox" id="ShowOnlyArea" class='option' />
-      <span>僅顯示這些區域，名稱用逗點隔開。( Ex. A區,B區 )</span>
-    </label>
-    <div class="tag-input-row indent">
-      <div class="tag-input" id="AreaNameBox">
-        <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">🎟️</span>
+      <div>
+        <div class="brand-name">tikitiki</div>
+        <div class="brand-ver" id="ver"></div>
       </div>
-      <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
     </div>
-    <input type="hidden" id="AreaName">
-  </div>
+    <button id="save" class="save-btn">儲存設定</button>
+  </header>
 
-  <div class="group">
-    <label class="row">
-      <input type="checkbox" id="AutoClickArea" class='option' />
-      <span>自動點擊符合關鍵字的區域，名稱用逗點隔開，不會隱藏其他區域。優先點擊「熱賣中」，其次剩餘張數多的區域。</span>
-    </label>
-    <div class="tag-input-row indent">
-      <div class="tag-input" id="AutoClickAreaNameBox">
-        <input type="text" id="AutoClickAreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+  <div id="status" class="toast"></div>
+
+  <main class="sections">
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
+      <label class="row">
+        <input type="checkbox" id="ProgramOnly" class='option' />
+        <span>自動跳過節目介紹頁，直接前往場次列表</span>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🪑</span>選區</h2>
+
+      <label class="row">
+        <input type="checkbox" id="HideBadArea" class='option' />
+        <span>自動隱藏「遮擋」「護網」「鐵網」「不完整」區</span>
+      </label>
+
+      <label class="row">
+        <input type="checkbox" id="HideDisabledArea" class='option' />
+        <span>自動隱藏身障區</span>
+      </label>
+
+      <label class="row">
+        <input type="checkbox" id="ShowOnlyArea" class='option' />
+        <span>僅顯示這些區域，其餘隱藏</span>
+      </label>
+      <div class="tag-input-row indent">
+        <div class="tag-input" id="AreaNameBox">
+          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+        </div>
+        <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
       </div>
-      <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
-    </div>
-    <input type="hidden" id="AutoClickAreaName">
+      <input type="hidden" id="AreaName">
+    </section>
 
-    <label class="field-label indent" style="margin-top:12px;">遇到熱賣程度、剩餘張數都一樣時，優先點擊：</label>
-    <div class="radio-group indent">
-      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top"> 畫面排前面的（通常較貴）</label>
-      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom"> 畫面排後面的（通常較便宜）</label>
-      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword"> 依關鍵字輸入的先後順序</label>
-      <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random"> 隨機</label>
-    </div>
-  </div>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
 
-  <div class="group">
-    <label class="row">
-      <input type="checkbox" id="ProgramOnly" class='option' />
-      <span>自動跳過節目介紹頁，直接前往場次列表。</span>
-    </label>
-  </div>
+      <label class="row">
+        <input type="checkbox" id="AutoClickArea" class='option' />
+        <span>自動點擊符合關鍵字的區域，不會隱藏其他區域</span>
+      </label>
+      <div class="tag-input-row indent">
+        <div class="tag-input" id="AutoClickAreaNameBox">
+          <input type="text" id="AutoClickAreaNameInput" placeholder="留空代表不限區域，輸入後按 Enter 新增">
+        </div>
+        <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
+      </div>
+      <input type="hidden" id="AutoClickAreaName">
 
-  <div class="group">
-    <label class="field-label">張數選擇</label>
-    <div class="radio-group">
-      <label class="radio-option"><input type="radio" name="TicketNumber" value="0"> 最大張數</label>
-      <label class="radio-option"><input type="radio" name="TicketNumber" value="1"> 1</label>
-      <label class="radio-option"><input type="radio" name="TicketNumber" value="2"> 2</label>
-      <label class="radio-option"><input type="radio" name="TicketNumber" value="3"> 3</label>
-      <label class="radio-option"><input type="radio" name="TicketNumber" value="4"> 4</label>
-    </div>
-  </div>
+      <div class="subpanel indent">
+        <label class="row">
+          <input type="checkbox" id="AutoClickAllowInsufficient" class='option' />
+          <span>允許點擊票數不足的區域<br><small>不勾選的話，只會點有足夠票數或熱賣中的區域</small></span>
+        </label>
 
-  <div class="group">
-    <label class="field-label">驗證碼自訂字串（銀行自動偵測失敗時使用）</label>
-    <input type="text" id="VerifyCode">
-    <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
-  </div>
+        <div class="field-label" style="margin-top:14px;">符合條件的區域有多個時，優先點擊</div>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top">畫面排前面（通常較貴）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面排後面（通常較便宜）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">關鍵字輸入順序</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random">隨機</label>
+        </div>
+      </div>
+    </section>
 
-  <div class="footer">
-    <button id="save">Save</button>
-    <span id="status"></span>
-  </div>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>張數選擇</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="1">1</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="2">2</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="3">3</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="4">4</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🔐</span>驗證碼</h2>
+      <div class="field-label">自訂字串（銀行自動偵測失敗時使用）</div>
+      <input type="text" id="VerifyCode" placeholder="例如信用卡卡號前六碼">
+      <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🧩</span>懸浮小工具</h2>
+      <label class="row">
+        <input type="checkbox" id="WidgetEnabled" class='option' />
+        <span>在購票頁面右上角顯示懸浮小工具（時鐘 / 自動點擊快捷開關）<br><small>關掉小工具本身的 × 後，要重新啟用請回來這裡打勾</small></span>
+      </label>
+    </section>
+
+  </main>
 </div>
 
 <script src="options.js"></script>

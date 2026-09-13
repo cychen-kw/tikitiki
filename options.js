@@ -9,6 +9,8 @@ function save_options() {
     var AutoClickArea = document.getElementById('AutoClickArea').checked;
     var AutoClickAreaName = document.getElementById('AutoClickAreaName').value;
     var AutoClickTieBreak = document.querySelector('input[name="AutoClickTieBreak"]:checked').value;
+    var AutoClickAllowInsufficient = document.getElementById('AutoClickAllowInsufficient').checked;
+    var WidgetEnabled = document.getElementById('WidgetEnabled').checked;
     var VerifyCode = document.getElementById('VerifyCode').value;
 
     chrome.storage.local.set({
@@ -21,6 +23,8 @@ function save_options() {
         AutoClickArea,
         AutoClickAreaName,
         AutoClickTieBreak,
+        AutoClickAllowInsufficient,
+        WidgetEnabled,
         VerifyCode
     }).then(() => {
         // Update status to let user know options were saved.
@@ -43,6 +47,8 @@ function restore_options() {
         AutoClickArea: false,
         AutoClickAreaName: "",
         AutoClickTieBreak: "keyword",
+        AutoClickAllowInsufficient: false,
+        WidgetEnabled: true,
         VerifyCode: ""
     }).then(items => {
         document.getElementById('ProgramOnly').checked = items.ProgramOnly;
@@ -56,6 +62,8 @@ function restore_options() {
         renderTags('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName', items.AutoClickAreaName ? items.AutoClickAreaName.split(',') : []);
         let tieBreakRadio = document.querySelector('input[name="AutoClickTieBreak"][value="' + items.AutoClickTieBreak + '"]');
         if (tieBreakRadio) tieBreakRadio.checked = true;
+        document.getElementById('AutoClickAllowInsufficient').checked = items.AutoClickAllowInsufficient;
+        document.getElementById('WidgetEnabled').checked = items.WidgetEnabled;
         document.getElementById('VerifyCode').value = items.VerifyCode;
     });
 }
