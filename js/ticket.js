@@ -40,4 +40,10 @@ let agreeCheckbox = document.getElementById("TicketForm_agree");
 if (agreeCheckbox) agreeCheckbox.checked = true;
 
 // please input verify code
-document.getElementById("TicketForm_verifyCode")?.focus();
+let verifyCodeInput = document.getElementById("TicketForm_verifyCode");
+if (verifyCodeInput) {
+  verifyCodeInput.focus();
+  verifyCodeInput.addEventListener("input", () => {
+    verifyCodeInput.value = verifyCodeInput.value.replace(/[^a-zA-Z]/g, "").slice(0, 4);
+  });
+}
