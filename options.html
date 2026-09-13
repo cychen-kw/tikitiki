@@ -27,7 +27,7 @@
     <section class="card">
       <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
       <label class="row">
-        <input type="checkbox" id="ProgramOnly" class='option' />
+        <input type="checkbox" id="ProgramOnly" class='option toggle-switch' />
         <span>自動跳過節目介紹頁，直接前往場次列表</span>
       </label>
     </section>
@@ -36,17 +36,17 @@
       <h2 class="card-title"><span class="card-icon">🪑</span>選區</h2>
 
       <label class="row">
-        <input type="checkbox" id="HideBadArea" class='option' />
+        <input type="checkbox" id="HideBadArea" class='option toggle-switch' />
         <span>自動隱藏「遮擋」「護網」「鐵網」「不完整」區</span>
       </label>
 
       <label class="row">
-        <input type="checkbox" id="HideDisabledArea" class='option' />
+        <input type="checkbox" id="HideDisabledArea" class='option toggle-switch' />
         <span>自動隱藏身障區</span>
       </label>
 
       <label class="row">
-        <input type="checkbox" id="ShowOnlyArea" class='option' />
+        <input type="checkbox" id="ShowOnlyArea" class='option toggle-switch' />
         <span>僅顯示這些區域，其餘隱藏</span>
       </label>
       <div class="tag-input-row indent">
@@ -62,7 +62,7 @@
       <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
 
       <label class="row">
-        <input type="checkbox" id="AutoClickArea" class='option' />
+        <input type="checkbox" id="AutoClickArea" class='option toggle-switch' />
         <span>自動點擊符合關鍵字的區域，不會隱藏其他區域</span>
       </label>
       <div class="tag-input-row indent">
@@ -75,12 +75,12 @@
 
       <div class="subpanel indent">
         <label class="row">
-          <input type="checkbox" id="AutoClickAllowInsufficient" class='option' />
+          <input type="checkbox" id="AutoClickAllowInsufficient" class='option toggle-switch' />
           <span>允許點擊票數不足的區域<br><small>不勾選的話，只會點有足夠票數或熱賣中的區域</small></span>
         </label>
 
         <div class="field-label" style="margin-top:14px;">符合條件的區域有多個時，優先點擊</div>
-        <div class="radio-group">
+        <div class="radio-group radio-group-vertical">
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top">畫面排前面（通常較貴）</label>
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面排後面（通常較便宜）</label>
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">關鍵字輸入順序</label>
@@ -110,7 +110,7 @@
     <section class="card">
       <h2 class="card-title"><span class="card-icon">🧩</span>懸浮小工具</h2>
       <label class="row">
-        <input type="checkbox" id="WidgetEnabled" class='option' />
+        <input type="checkbox" id="WidgetEnabled" class='option toggle-switch' />
         <span>在購票頁面右上角顯示懸浮小工具（時鐘 / 自動點擊快捷開關）<br><small>關掉小工具本身的 × 後，要重新啟用請回來這裡打勾</small></span>
       </label>
     </section>

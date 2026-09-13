@@ -3,6 +3,19 @@ function addClockWidget(onToggleOn) {
   chrome.storage.local.get({ WidgetEnabled: true, AutoClickArea: false }, items => {
     if (!items.WidgetEnabled) return;
 
+    if (!document.getElementById("tikitikiWidgetStyle")) {
+      let style = document.createElement("style");
+      style.id = "tikitikiWidgetStyle";
+      style.textContent =
+        "#tikitikiAutoClickToggle{background:#ccc;}" +
+        "#tikitikiAutoClickToggle::before{content:'';position:absolute;top:2px;left:2px;" +
+        "width:14px;height:14px;border-radius:50%;background:#fff;" +
+        "box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s;}" +
+        "#tikitikiAutoClickToggle:checked{background:#d0333c;}" +
+        "#tikitikiAutoClickToggle:checked::before{transform:translateX(14px);}";
+      document.head.appendChild(style);
+    }
+
     let widget = document.createElement("div");
     widget.id = "tikitikiWidget";
     widget.style.cssText =
@@ -24,7 +37,9 @@ function addClockWidget(onToggleOn) {
       '<label id="tikitikiToggleRow" style="display:flex;align-items:center;gap:6px;justify-content:center;' +
         'margin-top:6px;padding-top:6px;border-top:1px solid #f0f0f0;' +
         'font-size:12px;color:#555;cursor:pointer;">' +
-        '<input type="checkbox" id="tikitikiAutoClickToggle" style="accent-color:#d0333c;">' +
+        '<input type="checkbox" id="tikitikiAutoClickToggle" style="' +
+          'appearance:none;-webkit-appearance:none;width:32px;height:18px;border-radius:999px;' +
+          'position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;">' +
         '<span>自動點擊</span>' +
       '</label>';
     document.body.appendChild(widget);
