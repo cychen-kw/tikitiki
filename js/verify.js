@@ -1,8 +1,11 @@
+function stripBrackets(str) {
+  return str.replace('「', '').replace('」', '');
+}
 
-// console.log($.fn.jquery);
+addClockWidget();
 
 // credit check
-let title = $(".activityT.title").text();
+let title = document.querySelector(".activityT.title")?.textContent || "";
 let num = "";
 
 if (title.includes("中信")) {
@@ -15,15 +18,34 @@ if (title.includes("中信")) {
   num = "";
 }
 
-let $agreeItem = $(".promo-desc font");
-if (num === "" && $agreeItem) {
-  let str = $agreeItem.text();
-  console.log(str);
-  num = str.replace('「', '').replace('」', '');
+let checkCodeInput = document.querySelector("input[name=checkCode]");
+if (checkCodeInput) {
+  chrome.storage.local.get({
+    VerifyCode: ""
+  }, items => {
+    if (num === "" && items.VerifyCode) {
+      num = items.VerifyCode;
+    }
+
+    let promoDesc = document.querySelector(".promo-desc");
+    if (num === "" && promoDesc) {
+      let stripped = stripBrackets(promoDesc.textContent.trim());
+      if (/^\d+$/.test(stripped)) {
+        num = stripped; // only auto-fill when it's actually a code, not instruction text
+      }
+    }
+
+    checkCodeInput.value = num;
+    checkCodeInput.focus();
+  });
 }
 
-if ($("input[name=checkCode]").length) {
-  console.log("num = " + num);
-  $("input[name=checkCode]").val(num).focus();
-}
-
+// click the highlighted red text (tixcraft's actual instruction) to fill it in
+document.querySelectorAll(".promo-desc font[color]").forEach(font => {
+  font.style.cursor = "pointer";
+  font.addEventListener("click", () => {
+    if (!checkCodeInput) return;
+    checkCodeInput.value = stripBrackets(font.textContent);
+    checkCodeInput.focus();
+  });
+});

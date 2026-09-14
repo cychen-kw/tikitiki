@@ -7,65 +7,131 @@
 </head>
 <body>
 
-<h2>購票輔助程式設定頁面<span id="ver"></span></h2>
+<div class="page">
 
-<div>
-  <input type="checkbox" id="HideBadArea" class='option' />
-  <label>自動隱藏 "遮擋", "護網", "鐵網", "不完整" 區</label>
-  <br>
-  <br>
-  <input type="checkbox" id="ShowOnlyArea" class='option' />
-  <label>僅顯示這些區域，名稱用逗點隔開。( Ex. A區,B區 )</label>
-  <br>
-  <input type="text" id="AreaName" style="margin-left: 24px;">
-  <br>
-  <br>
-  <input type="checkbox" id="ProgramOnly" class='option' />
-  <label>只顯示立即購票視窗。</label>
-  <br>
-  <br>
-  <input type="checkbox" id="ProgramAuto" class='option' />
-  <label>自動點選節目日期一。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto2" class='option' />
-  <label>自動點選節目日期二。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto3" class='option' />
-  <label>自動點選節目日期三。</label>
-  <br>
-  <input type="checkbox" id="ProgramAuto4" class='option' />
-  <label>自動點選節目日期四。</label>
-  <br>
-  <br>
-  <label>節目日期 :</label>
-  <br>
-  <input type="date" id="ProgramDate">
-  <br>
-  <br>
-  <label>張數選擇 :</label>
-  <br>
-  <select id="TicketNumber">
-    <option value="0">最大張數</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
-  <br>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo-wrap" id="brandLogoWrap">
+        <span class="brand-logo" id="brandLogo">🎟️</span>
+      </span>
+      <div>
+        <div class="brand-name">tikitiki</div>
+        <div class="brand-ver" id="ver"></div>
+      </div>
+    </div>
+    <button id="save" class="save-btn">儲存設定</button>
+  </header>
+
+  <div id="status" class="toast"></div>
+
+  <div class="tab-bar">
+    <button type="button" class="tab-btn active" data-tab="tixcraft">🎫 拓元 tixCraft</button>
+    <button type="button" class="tab-btn" data-tab="kktix">🎟️ KKTIX</button>
+  </div>
+
+  <main class="sections" id="tab-tixcraft">
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
+      <label class="row">
+        <input type="checkbox" id="ProgramOnly" class='option toggle-switch' />
+        <span>自動跳過節目介紹頁，直接前往場次列表</span>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🪑</span>選區</h2>
+
+      <label class="row">
+        <input type="checkbox" id="HideBadArea" class='option toggle-switch' />
+        <span>自動隱藏「遮擋」「護網」「鐵網」「不完整」區</span>
+      </label>
+
+      <label class="row">
+        <input type="checkbox" id="HideDisabledArea" class='option toggle-switch' />
+        <span>自動隱藏身障區</span>
+      </label>
+
+      <label class="row">
+        <input type="checkbox" id="HideSoldOutArea" class='option toggle-switch' />
+        <span>自動隱藏已售完的區域</span>
+      </label>
+
+      <label class="row">
+        <input type="checkbox" id="ShowOnlyArea" class='option toggle-switch' />
+        <span>僅顯示這些區域，其餘隱藏</span>
+      </label>
+      <div class="tag-input-row indent">
+        <div class="tag-input" id="AreaNameBox">
+          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+        </div>
+        <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
+      </div>
+      <input type="hidden" id="AreaName">
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
+
+      <label class="row">
+        <input type="checkbox" id="AutoClickArea" class='option toggle-switch' />
+        <span>自動點擊符合關鍵字的區域，不會隱藏其他區域</span>
+      </label>
+      <div class="tag-input-row indent">
+        <div class="tag-input" id="AutoClickAreaNameBox">
+          <input type="text" id="AutoClickAreaNameInput" placeholder="留空代表不限區域，輸入後按 Enter 新增">
+        </div>
+        <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
+      </div>
+      <input type="hidden" id="AutoClickAreaName">
+
+      <div class="subpanel indent">
+        <label class="row">
+          <input type="checkbox" id="AutoClickAllowInsufficient" class='option toggle-switch' />
+          <span>允許點擊票數不足的區域<br><small>不勾選的話，只會點有足夠票數或熱賣中的區域</small></span>
+        </label>
+
+        <div class="field-label" style="margin-top:14px;">符合條件的區域有多個時，優先點擊</div>
+        <div class="radio-group radio-group-vertical">
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top">畫面排前面（通常較貴）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面排後面（通常較便宜）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">關鍵字輸入順序</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random">隨機</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="remaining">票數最多者（同票或都熱賣中則隨機）</label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>張數選擇</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="1">1</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="2">2</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="3">3</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="4">4</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🔐</span>驗證碼</h2>
+      <div class="field-label">自訂字串（銀行自動偵測失敗時使用）</div>
+      <input type="text" id="VerifyCode" placeholder="例如信用卡卡號前六碼">
+      <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
+    </section>
+
+  </main>
+
+  <main class="sections" id="tab-kktix" hidden>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">✅</span>報名頁面</h2>
+      <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」，目前沒有可調整的設定。</p>
+    </section>
+
+  </main>
 </div>
 
-<div id="status"></div>
-<br>
-<button id="save">Save</button>
-<br>
-<br>
-<hr>
-<!--
-<h3>最後的活動記錄</h3>
-<div id="ProgramTitle">節目名稱 : </div>
-<br>
-<div id="AreaList"></div>
--->
 <script src="options.js"></script>
 </body>
 </html>
