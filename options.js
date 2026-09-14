@@ -12,6 +12,9 @@ function save_options() {
     var AutoClickTieBreak = document.querySelector('input[name="AutoClickTieBreak"]:checked').value;
     var AutoClickAllowInsufficient = document.getElementById('AutoClickAllowInsufficient').checked;
     var VerifyCode = document.getElementById('VerifyCode').value;
+    var KktixAutoSelect = document.getElementById('KktixAutoSelect').checked;
+    var KktixTicketNumber = document.querySelector('input[name="KktixTicketNumber"]:checked').value;
+    var KktixQualificationCode = document.getElementById('KktixQualificationCode').value;
 
     chrome.storage.local.set({
         ProgramOnly,
@@ -25,7 +28,10 @@ function save_options() {
         AutoClickAreaName,
         AutoClickTieBreak,
         AutoClickAllowInsufficient,
-        VerifyCode
+        VerifyCode,
+        KktixAutoSelect,
+        KktixTicketNumber,
+        KktixQualificationCode
     }).then(() => {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -37,6 +43,7 @@ function save_options() {
 }
 // Restores select box and checkbox state using the preferences stored in browser.storage.
 function restore_options() {
+    renderKktixScope();
     chrome.storage.local.get({
         ProgramOnly: false,
         TicketNumber: 0,
@@ -49,7 +56,10 @@ function restore_options() {
         AutoClickAreaName: "",
         AutoClickTieBreak: "keyword",
         AutoClickAllowInsufficient: false,
-        VerifyCode: ""
+        VerifyCode: "",
+        KktixAutoSelect: false,
+        KktixTicketNumber: "2",
+        KktixQualificationCode: ""
     }).then(items => {
         document.getElementById('ProgramOnly').checked = items.ProgramOnly;
         let ticketRadio = document.querySelector('input[name="TicketNumber"][value="' + items.TicketNumber + '"]');
@@ -65,8 +75,72 @@ function restore_options() {
         if (tieBreakRadio) tieBreakRadio.checked = true;
         document.getElementById('AutoClickAllowInsufficient').checked = items.AutoClickAllowInsufficient;
         document.getElementById('VerifyCode').value = items.VerifyCode;
+        document.getElementById('KktixAutoSelect').checked = items.KktixAutoSelect;
+        let kktixRadio = document.querySelector('input[name="KktixTicketNumber"][value="' + items.KktixTicketNumber + '"]');
+        if (kktixRadio) kktixRadio.checked = true;
+        document.getElementById('KktixQualificationCode').value = items.KktixQualificationCode;
     });
 }
+
+async function renderKktixScope() {
+    const status = document.getElementById('KktixScopeStatus');
+    try {
+        const items = await chrome.storage.local.get(null);
+        const body = document.getElementById('KktixScopeList');
+        body.replaceChildren();
+        let count = 0;
+        for (const [key, ids] of Object.entries(items)) {
+            if (!key.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
+            for (const id of ids) {
+                if (typeof id !== 'string') continue;
+                const info = items[key.replace('KktixTicketScope:', 'KktixTicketInfo:') + ':' + id];
+                const row = document.createElement('tr');
+                for (const value of [id, info?.eventName || key.slice('KktixTicketScope:'.length), info?.ticketName || '重新開啟報名頁後補上名稱']) {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                }
+                const cell = document.createElement('td');
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'clear-btn';
+                remove.textContent = '刪除';
+                remove.setAttribute('aria-label', `刪除 ${info?.eventName || key.slice('KktixTicketScope:'.length)} ${info?.ticketName || id}`);
+                remove.addEventListener('click', () => deleteKktixScope(key, id));
+                cell.appendChild(remove);
+                row.appendChild(cell);
+                body.appendChild(row);
+                count++;
+            }
+        }
+        document.getElementById('KktixScopeClear').disabled = count === 0;
+        status.textContent = count ? `已加入 ${count} 個票種` : '尚未加入任何票種';
+    } catch (error) {
+        status.textContent = '讀取清單失敗，請重新開啟設定頁。';
+        console.error(error);
+    }
+}
+
+async function deleteKktixScope(key, id) {
+    try {
+        const items = await chrome.storage.local.get(null);
+        const updates = {};
+        for (const [scopeKey, ids] of Object.entries(items)) {
+            if (!scopeKey.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
+            if (!key || key === scopeKey) updates[scopeKey] = key ? ids.filter(value => value !== id) : [];
+        }
+        await chrome.storage.local.set(updates);
+        await renderKktixScope();
+    } catch (error) {
+        document.getElementById('KktixScopeStatus').textContent = '刪除失敗，請重試。';
+        console.error(error);
+    }
+}
+
+document.getElementById('KktixScopeClear').addEventListener('click', () => deleteKktixScope());
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && Object.keys(changes).some(key => /^KktixTicket(Scope|Info):/.test(key))) renderKktixScope();
+});
 
 // generic keyword tag input: chips are the display, the hidden input stays
 // the comma-joined value that save/restore and area.js already expect.
@@ -163,4 +237,10 @@ document.getElementById('brandLogo').addEventListener('click', () => {
         wrap.appendChild(particle);
         particle.addEventListener('animationend', () => particle.remove());
     }
+
+    let bubble = document.createElement('span');
+    bubble.className = 'tiki-bubble';
+    bubble.textContent = '有票 +1';
+    wrap.appendChild(bubble);
+    bubble.addEventListener('animationend', () => bubble.remove());
 });

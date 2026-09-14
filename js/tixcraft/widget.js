@@ -1,6 +1,6 @@
-// floating clock + auto-click quick toggle, shared across area/detail/game/verify/ticket pages
-function addClockWidget(onToggleOn) {
-  chrome.storage.local.get({ AutoClickArea: false }, items => {
+// Shared floating clock and platform-specific auto-click toggle.
+function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
+  chrome.storage.local.get({ [settingKey]: false }, items => {
     if (!document.getElementById("tikitikiWidgetStyle")) {
       let style = document.createElement("style");
       style.id = "tikitikiWidgetStyle";
@@ -67,10 +67,22 @@ function addClockWidget(onToggleOn) {
     });
 
     let toggle = widget.querySelector("#tikitikiAutoClickToggle");
-    toggle.checked = items.AutoClickArea;
-    toggle.addEventListener("change", () => {
-      chrome.storage.local.set({ AutoClickArea: toggle.checked });
-      if (toggle.checked && onToggleOn) onToggleOn();
+    toggle.checked = items[settingKey];
+    toggle.addEventListener("change", async () => {
+      const enabled = toggle.checked;
+      toggle.disabled = true;
+      try {
+        await chrome.storage.local.set({ [settingKey]: enabled });
+        if (enabled && onToggleOn) onToggleOn();
+      } catch (error) {
+        toggle.checked = !enabled;
+        console.error('TikiTiki: 無法儲存自動點擊設定', error);
+      } finally {
+        toggle.disabled = false;
+      }
+    });
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes[settingKey]) toggle.checked = changes[settingKey].newValue ?? false;
     });
   });
 }

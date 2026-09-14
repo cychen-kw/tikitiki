@@ -24,34 +24,40 @@
   "options_page": "options.html",
   "content_scripts" : [
     {
+      "matches": [ "https://kktix.com/events/*/registrations/new*" ],
+      "run_at": "document_idle",
+      "world": "MAIN",
+      "js": [ "js/kktix/limits.js" ]
+    },
+    {
       "matches" : [ "https://tixcraft.com/ticket/ticket/*" ],
       "run_at": "document_end",
-      "js" : [ "js/widget.js", "js/ticket.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/ticket.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/area/*" ],
       "run_at": "document_end",
-      "js" : [ "js/widget.js", "js/area.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/area.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/game/*" ],
       "run_at": "document_end",
-      "js" : [ "js/widget.js", "js/gamelink.js", "js/game.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/game.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/detail/*" ],
       "run_at": "document_end",
-      "js" : [ "js/widget.js", "js/gamelink.js", "js/detail.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/detail.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],
       "run_at": "document_end",
-      "js" : [ "js/widget.js", "js/verify.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/verify.js" ]
     },
     {
       "matches" : [ "https://kktix.com/events/*/registrations/new*" ],
       "run_at": "document_idle",
-      "js" : [ "js/kktix.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/kktix/kktix.js" ]
     }
   ],
   "manifest_version": 3
