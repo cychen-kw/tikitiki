@@ -4,6 +4,7 @@ function save_options() {
     var TicketNumber = document.querySelector('input[name="TicketNumber"]:checked').value;
     var HideBadArea = document.getElementById('HideBadArea').checked;
     var HideDisabledArea = document.getElementById('HideDisabledArea').checked;
+    var HideSoldOutArea = document.getElementById('HideSoldOutArea').checked;
     var ShowOnlyArea = document.getElementById('ShowOnlyArea').checked;
     var AreaName = document.getElementById('AreaName').value;
     var AutoClickArea = document.getElementById('AutoClickArea').checked;
@@ -17,6 +18,7 @@ function save_options() {
         TicketNumber,
         HideBadArea,
         HideDisabledArea,
+        HideSoldOutArea,
         ShowOnlyArea,
         AreaName,
         AutoClickArea,
@@ -40,6 +42,7 @@ function restore_options() {
         TicketNumber: 0,
         HideBadArea: false,
         HideDisabledArea: false,
+        HideSoldOutArea: true,
         ShowOnlyArea: false,
         AreaName: "",
         AutoClickArea: false,
@@ -53,6 +56,7 @@ function restore_options() {
         if (ticketRadio) ticketRadio.checked = true;
         document.getElementById('HideBadArea').checked = items.HideBadArea;
         document.getElementById('HideDisabledArea').checked = items.HideDisabledArea;
+        document.getElementById('HideSoldOutArea').checked = items.HideSoldOutArea;
         document.getElementById('ShowOnlyArea').checked = items.ShowOnlyArea;
         renderTags('AreaNameBox', 'AreaNameInput', 'AreaName', items.AreaName ? items.AreaName.split(',') : []);
         document.getElementById('AutoClickArea').checked = items.AutoClickArea;

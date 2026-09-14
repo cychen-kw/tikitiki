@@ -1,13 +1,25 @@
 {
   "name": "tikitiki",
-  "description": "購票輔助程式",
-  "version": "2.0.2",
+  "description": "搶票野獸",
+  "version": "1.0.0",
   "permissions": [ "activeTab", "storage" ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "購票輔助"
+    "default_title": "購票輔助",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
   },
   "options_page": "options.html",
   "content_scripts" : [

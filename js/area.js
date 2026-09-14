@@ -25,8 +25,24 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
       if (!hot && remaining < neededTickets) return; // not enough tickets, skip
     }
 
-    candidates.push({ a, keywordIndex, domIndex, rand: Math.random() });
+    let hot = text.includes("熱賣中") || text.includes("Available");
+    let match = text.match(/剩餘\s*(\d+)/) || text.match(/(\d+)\s*seat\(s\)\s*remaining/i);
+    let remaining = match ? parseInt(match[1], 10) : -1;
+
+    candidates.push({ a, keywordIndex, domIndex, hot, remaining, rand: Math.random() });
   });
+
+  if (!candidates.length) return;
+
+  if (tieBreak === "remaining") {
+    // hot areas have no visible count, treat them as the top tier;
+    // among whoever's tied for the most tickets, pick randomly
+    let topTier = candidates.some(c => c.hot)
+      ? candidates.filter(c => c.hot)
+      : candidates.filter(c => c.remaining === Math.max(...candidates.map(c => c.remaining)));
+    topTier[Math.floor(Math.random() * topTier.length)].a.click();
+    return;
+  }
 
   candidates.sort((a, b) => {
     switch (tieBreak) {
@@ -38,14 +54,13 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
     }
   });
 
-  if (candidates.length) {
-    candidates[0].a.click();
-  }
+  candidates[0].a.click();
 }
 
 chrome.storage.local.get({
   HideBadArea: false,
   HideDisabledArea: false,
+  HideSoldOutArea: true,
   ShowOnlyArea: false,
   AreaName: "",
   AutoClickArea: false,
@@ -82,14 +97,15 @@ chrome.storage.local.get({
     });
   }
 
+  if (items.HideSoldOutArea) {
+    document.querySelectorAll("ul.area-list > li").forEach(li => {
+      if (!li.querySelector("a")) li.style.display = "none";
+    });
+  }
+
   if (items.AutoClickArea) {
     runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient);
   }
 
   addClockWidget(() => runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient));
-});
-
-// hide no link area
-document.querySelectorAll("ul.area-list > li").forEach(li => {
-  if (!li.querySelector("a")) li.style.display = "none";
 });

@@ -1,5 +1,5 @@
 // link each session name in #gameList to its ticket purchase page
-// area page format: https://tixcraft.com/ticket/area/{activityId}/{sessionId}
+// area page format: /ticket/area/{activityId}/{sessionId}
 function linkGameSessions() {
   let activityId = location.pathname.split("/").pop();
 
@@ -18,7 +18,7 @@ function linkGameSessions() {
       if (!link) {
         let sessionId = tr.getAttribute("data-key");
         if (sessionId) {
-          link = "https://tixcraft.com/ticket/area/" + activityId + "/" + sessionId;
+          link = "/ticket/area/" + activityId + "/" + sessionId;
         }
       }
       if (link) {

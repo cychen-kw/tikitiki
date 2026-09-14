@@ -51,6 +51,11 @@
       </label>
 
       <label class="row">
+        <input type="checkbox" id="HideSoldOutArea" class='option toggle-switch' />
+        <span>自動隱藏已售完的區域</span>
+      </label>
+
+      <label class="row">
         <input type="checkbox" id="ShowOnlyArea" class='option toggle-switch' />
         <span>僅顯示這些區域，其餘隱藏</span>
       </label>
@@ -90,6 +95,7 @@
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面排後面（通常較便宜）</label>
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">關鍵字輸入順序</label>
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random">隨機</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="remaining">票數最多者（同票或都熱賣中則隨機）</label>
         </div>
       </div>
     </section>
