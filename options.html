@@ -125,8 +125,50 @@
   <main class="sections" id="tab-kktix" hidden>
 
     <section class="card">
+      <h2 class="card-title"><span class="card-icon">🔑</span>資格碼</h2>
+      <label class="field-label" for="KktixQualificationCode">自訂資格碼</label>
+      <input type="text" id="KktixQualificationCode" placeholder="輸入完整資格碼" autocomplete="off" spellcheck="false">
+      <p class="hint">選票後自動填入出現的資格碼欄位，適用於手動及自動選票。請保留正確大小寫與符號；留空即停用，不會覆蓋已輸入的內容。</p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
+      <button type="button" class="clear-btn" id="KktixScopeClear" disabled>全部清空</button>
+      <p class="hint">刪除與清空會立即儲存，並同步到已開啟的報名頁。全部清空會移除所有活動的選票範圍。</p>
+      <p id="KktixScopeStatus" class="hint" role="status"></p>
+      <div class="scope-table-wrap">
+        <table class="scope-table">
+          <thead><tr><th scope="col">ID</th><th scope="col">節目名稱</th><th scope="col">票種</th><th scope="col">操作</th></tr></thead>
+          <tbody id="KktixScopeList"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動選票</h2>
+      <label class="row">
+        <input type="checkbox" id="KktixAutoSelect" class="option toggle-switch">
+        <span>自動選擇已加入範圍的票種</span>
+      </label>
+      <p class="hint">在報名頁點票種旁的「＋」加入範圍，點「✓」移除；範圍依活動自動儲存。未加入任何票種時不會自動選票。</p>
+      <p class="hint">依畫面順序選擇第一個可加票的票種，達到指定張數或網站上限後停止；下一步由你確認。</p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>張數選擇</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="1">1</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="2" checked>2</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="3">3</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="4">4</label>
+      </div>
+      <p class="hint">最大張數會逐次點擊原本的加號，直到網站不允許增加；已選張數會計入目標。</p>
+    </section>
+
+    <section class="card">
       <h2 class="card-title"><span class="card-icon">✅</span>報名頁面</h2>
-      <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」，目前沒有可調整的設定。</p>
+      <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」。</p>
     </section>
 
   </main>

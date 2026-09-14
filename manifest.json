@@ -24,6 +24,12 @@
   "options_page": "options.html",
   "content_scripts" : [
     {
+      "matches": [ "https://kktix.com/events/*/registrations/new*" ],
+      "run_at": "document_idle",
+      "world": "MAIN",
+      "js": [ "js/kktix/limits.js" ]
+    },
+    {
       "matches" : [ "https://tixcraft.com/ticket/ticket/*" ],
       "run_at": "document_end",
       "js" : [ "js/tixcraft/widget.js", "js/tixcraft/ticket.js" ]
@@ -51,7 +57,7 @@
     {
       "matches" : [ "https://kktix.com/events/*/registrations/new*" ],
       "run_at": "document_idle",
-      "js" : [ "js/kktix/kktix.js" ]
+      "js" : [ "js/tixcraft/widget.js", "js/kktix/kktix.js" ]
     }
   ],
   "manifest_version": 3
