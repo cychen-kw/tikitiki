@@ -23,7 +23,7 @@ if (checkCodeInput) {
   chrome.storage.local.get({
     VerifyCode: ""
   }, items => {
-    if (num === "" && items.VerifyCode) {
+    if (items.VerifyCode) {
       num = items.VerifyCode;
     }
 

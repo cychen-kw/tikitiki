@@ -91,7 +91,7 @@ chrome.storage.local.get({
 
   if (items.HideDisabledArea) {
     document.querySelectorAll("ul.area-list > li").forEach(li => {
-      if (li.textContent.includes("身障")) {
+      if (/身障|身心障礙|輪椅/.test(li.textContent)) {
         li.style.display = "none";
       }
     });
@@ -107,5 +107,8 @@ chrome.storage.local.get({
     runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient);
   }
 
-  addClockWidget(() => runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient));
+  addClockWidget(() => chrome.storage.local.get(items, current => {
+    const needed = Number(current.TicketNumber) > 0 ? Number(current.TicketNumber) : 1;
+    runAutoClickArea(current.AutoClickAreaName, current.AutoClickTieBreak, needed, current.AutoClickAllowInsufficient);
+  }));
 });

@@ -140,29 +140,10 @@ body {
   color: var(--text-muted);
 }
 
-.save-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 9px 22px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(208, 51, 60, 0.35);
-}
-
-.save-btn:hover {
-  background: var(--accent-dark);
-}
-
-.save-btn:active {
-  transform: translateY(1px);
-}
-
 /* toast */
 
 .toast {
+  z-index: 20;
   position: fixed;
   top: 14px;
   left: 50%;
@@ -477,7 +458,15 @@ input[type="text"]:focus {
   white-space: nowrap;
 }
 
+.tag[draggable="true"] { cursor: grab; }
+.tag[draggable="true"]:active { cursor: grabbing; }
+.tag[draggable="true"]:focus-visible { outline: 2px solid #2879c8; outline-offset: 2px; }
+
 .tag-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
   font-weight: bold;
   line-height: 1;
