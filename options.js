@@ -163,4 +163,10 @@ document.getElementById('brandLogo').addEventListener('click', () => {
         wrap.appendChild(particle);
         particle.addEventListener('animationend', () => particle.remove());
     }
+
+    let bubble = document.createElement('span');
+    bubble.className = 'tiki-bubble';
+    bubble.textContent = '有票 +1';
+    wrap.appendChild(bubble);
+    bubble.addEventListener('animationend', () => bubble.remove());
 });

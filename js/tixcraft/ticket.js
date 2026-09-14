@@ -46,4 +46,9 @@ if (verifyCodeInput) {
   verifyCodeInput.addEventListener("input", () => {
     verifyCodeInput.value = verifyCodeInput.value.replace(/[^a-zA-Z]/g, "").slice(0, 4);
   });
+
+  let hint = document.createElement("div");
+  hint.textContent = "輸入完直接按 Enter 購票";
+  hint.style.cssText = "color:#d0333c;font-size:12px;margin-top:4px;";
+  verifyCodeInput.insertAdjacentElement("afterend", hint);
 }
