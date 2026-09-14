@@ -1,85 +1,62 @@
-// Saves options to browser.storage
-function save_options() {
-    var ProgramOnly = document.getElementById('ProgramOnly').checked;
-    var TicketNumber = document.querySelector('input[name="TicketNumber"]:checked').value;
-    var HideBadArea = document.getElementById('HideBadArea').checked;
-    var HideDisabledArea = document.getElementById('HideDisabledArea').checked;
-    var HideSoldOutArea = document.getElementById('HideSoldOutArea').checked;
-    var ShowOnlyArea = document.getElementById('ShowOnlyArea').checked;
-    var AreaName = document.getElementById('AreaName').value;
-    var AutoClickArea = document.getElementById('AutoClickArea').checked;
-    var AutoClickAreaName = document.getElementById('AutoClickAreaName').value;
-    var AutoClickTieBreak = document.querySelector('input[name="AutoClickTieBreak"]:checked').value;
-    var AutoClickAllowInsufficient = document.getElementById('AutoClickAllowInsufficient').checked;
-    var VerifyCode = document.getElementById('VerifyCode').value;
-    var KktixAutoSelect = document.getElementById('KktixAutoSelect').checked;
-    var KktixTicketNumber = document.querySelector('input[name="KktixTicketNumber"]:checked').value;
-    var KktixQualificationCode = document.getElementById('KktixQualificationCode').value;
+const optionDefaults = {
+    ProgramOnly: false, TicketNumber: 0, HideBadArea: false, HideDisabledArea: false,
+    HideSoldOutArea: true, ShowOnlyArea: false, AreaName: "", AutoClickArea: false,
+    AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
+    VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
+    KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false
+};
+let optionsReady = false;
+let statusTimer;
+let saveQueue = Promise.resolve();
 
-    chrome.storage.local.set({
-        ProgramOnly,
-        TicketNumber,
-        HideBadArea,
-        HideDisabledArea,
-        HideSoldOutArea,
-        ShowOnlyArea,
-        AreaName,
-        AutoClickArea,
-        AutoClickAreaName,
-        AutoClickTieBreak,
-        AutoClickAllowInsufficient,
-        VerifyCode,
-        KktixAutoSelect,
-        KktixTicketNumber,
-        KktixQualificationCode
-    }).then(() => {
-        // Update status to let user know options were saved.
-        var status = document.getElementById('status');
-        status.textContent = 'Options saved.';
-        setTimeout(() => {
-            status.textContent = '';
-        }, 750);
-    });
+function applyOption(key, value) {
+    if (key === 'AreaName' || key === 'AutoClickAreaName') {
+        renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
+        return;
+    }
+    const radios = document.querySelectorAll('input[type="radio"]');
+    for (const radio of radios) {
+        if (radio.name === key) radio.checked = String(value) === radio.value;
+    }
+    const input = document.getElementById(key);
+    if (input) {
+        if (optionsReady && input.type === 'text' && document.activeElement === input) return;
+        if (input.type === 'checkbox') input.checked = value;
+        else input.value = value;
+    }
 }
-// Restores select box and checkbox state using the preferences stored in browser.storage.
-function restore_options() {
-    renderKktixScope();
-    chrome.storage.local.get({
-        ProgramOnly: false,
-        TicketNumber: 0,
-        HideBadArea: false,
-        HideDisabledArea: false,
-        HideSoldOutArea: true,
-        ShowOnlyArea: false,
-        AreaName: "",
-        AutoClickArea: false,
-        AutoClickAreaName: "",
-        AutoClickTieBreak: "keyword",
-        AutoClickAllowInsufficient: false,
-        VerifyCode: "",
-        KktixAutoSelect: false,
-        KktixTicketNumber: "2",
-        KktixQualificationCode: ""
-    }).then(items => {
-        document.getElementById('ProgramOnly').checked = items.ProgramOnly;
-        let ticketRadio = document.querySelector('input[name="TicketNumber"][value="' + items.TicketNumber + '"]');
-        if (ticketRadio) ticketRadio.checked = true;
-        document.getElementById('HideBadArea').checked = items.HideBadArea;
-        document.getElementById('HideDisabledArea').checked = items.HideDisabledArea;
-        document.getElementById('HideSoldOutArea').checked = items.HideSoldOutArea;
-        document.getElementById('ShowOnlyArea').checked = items.ShowOnlyArea;
-        renderTags('AreaNameBox', 'AreaNameInput', 'AreaName', items.AreaName ? items.AreaName.split(',') : []);
-        document.getElementById('AutoClickArea').checked = items.AutoClickArea;
-        renderTags('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName', items.AutoClickAreaName ? items.AutoClickAreaName.split(',') : []);
-        let tieBreakRadio = document.querySelector('input[name="AutoClickTieBreak"][value="' + items.AutoClickTieBreak + '"]');
-        if (tieBreakRadio) tieBreakRadio.checked = true;
-        document.getElementById('AutoClickAllowInsufficient').checked = items.AutoClickAllowInsufficient;
-        document.getElementById('VerifyCode').value = items.VerifyCode;
-        document.getElementById('KktixAutoSelect').checked = items.KktixAutoSelect;
-        let kktixRadio = document.querySelector('input[name="KktixTicketNumber"][value="' + items.KktixTicketNumber + '"]');
-        if (kktixRadio) kktixRadio.checked = true;
-        document.getElementById('KktixQualificationCode').value = items.KktixQualificationCode;
+
+// Save only the edited field so another tab's settings cannot be overwritten.
+function saveOption(key, value) {
+    if (!optionsReady || !Object.hasOwn(optionDefaults, key)) return Promise.resolve();
+    const status = document.getElementById('status');
+    clearTimeout(statusTimer);
+    status.textContent = '儲存中…';
+    saveQueue = saveQueue.then(() => chrome.storage.local.set({ [key]: value })).then(() => {
+        status.textContent = '設定已儲存';
+        clearTimeout(statusTimer);
+        statusTimer = setTimeout(() => { status.textContent = ''; }, 1000);
+    }).catch(error => {
+        clearTimeout(statusTimer);
+        status.textContent = '儲存失敗，請重新修改該設定以重試。';
+        console.error(error);
     });
+    return saveQueue;
+}
+
+async function restore_options() {
+    renderKktixScope();
+    try {
+        const items = await chrome.storage.local.get(optionDefaults);
+        for (const key of Object.keys(optionDefaults)) applyOption(key, items[key]);
+        optionsReady = true;
+        document.querySelectorAll('main input, main button').forEach(input => {
+            if (input.id !== 'KktixScopeClear') input.disabled = false;
+        });
+    } catch (error) {
+        document.getElementById('status').textContent = '讀取設定失敗，請重新開啟設定頁。';
+        console.error(error);
+    }
 }
 
 async function renderKktixScope() {
@@ -104,8 +81,8 @@ async function renderKktixScope() {
                 const remove = document.createElement('button');
                 remove.type = 'button';
                 remove.className = 'clear-btn';
-                remove.textContent = '刪除';
-                remove.setAttribute('aria-label', `刪除 ${info?.eventName || key.slice('KktixTicketScope:'.length)} ${info?.ticketName || id}`);
+                remove.textContent = '移除';
+                remove.setAttribute('aria-label', `移除 ${info?.eventName || key.slice('KktixTicketScope:'.length)} ${info?.ticketName || id}`);
                 remove.addEventListener('click', () => deleteKktixScope(key, id));
                 cell.appendChild(remove);
                 row.appendChild(cell);
@@ -132,13 +109,18 @@ async function deleteKktixScope(key, id) {
         await chrome.storage.local.set(updates);
         await renderKktixScope();
     } catch (error) {
-        document.getElementById('KktixScopeStatus').textContent = '刪除失敗，請重試。';
+        document.getElementById('KktixScopeStatus').textContent = '移除失敗，請重試。';
         console.error(error);
     }
 }
 
 document.getElementById('KktixScopeClear').addEventListener('click', () => deleteKktixScope());
 chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && optionsReady) {
+        for (const [key, change] of Object.entries(changes)) {
+            if (Object.hasOwn(optionDefaults, key)) applyOption(key, change.newValue ?? optionDefaults[key]);
+        }
+    }
     if (area === 'local' && Object.keys(changes).some(key => /^KktixTicket(Scope|Info):/.test(key))) renderKktixScope();
 });
 
@@ -148,18 +130,56 @@ function renderTags(boxId, inputId, hiddenId, tags) {
     let box = document.getElementById(boxId);
     box.querySelectorAll('.tag').forEach(el => el.remove());
     let input = document.getElementById(inputId);
+    let draggedIndex = null;
+    function moveTag(from, to) {
+        if (from === to || to < 0 || to >= tags.length) return;
+        tags.splice(to, 0, tags.splice(from, 1)[0]);
+        renderTags(boxId, inputId, hiddenId, tags);
+        saveOption(hiddenId, tags.join(','));
+        box.querySelectorAll('.tag')[to]?.focus();
+    }
 
     tags.forEach((tag, index) => {
         let chip = document.createElement('span');
         chip.className = 'tag';
         chip.textContent = tag;
+        if (hiddenId === 'AutoClickAreaName') {
+            chip.draggable = true;
+            chip.tabIndex = 0;
+            chip.title = '拖曳換順序，或按 Alt + 左右方向鍵移動';
+            chip.addEventListener('dragstart', event => {
+                draggedIndex = index;
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', tag);
+            });
+            chip.addEventListener('dragover', event => {
+                if (draggedIndex === null) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+            chip.addEventListener('drop', event => {
+                if (draggedIndex === null) return;
+                event.preventDefault();
+                moveTag(draggedIndex, index);
+                draggedIndex = null;
+            });
+            chip.addEventListener('dragend', () => { draggedIndex = null; });
+            chip.addEventListener('keydown', event => {
+                if (event.target !== chip || !event.altKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+                event.preventDefault();
+                moveTag(index, index + (event.key === 'ArrowLeft' ? -1 : 1));
+            });
+        }
 
-        let remove = document.createElement('span');
+        let remove = document.createElement('button');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', '移除 ' + tag);
         remove.className = 'tag-remove';
         remove.textContent = '×';
         remove.addEventListener('click', () => {
             tags.splice(index, 1);
             renderTags(boxId, inputId, hiddenId, tags);
+            saveOption(hiddenId, tags.join(','));
         });
 
         chip.appendChild(remove);
@@ -181,12 +201,15 @@ function setupTagInput(boxId, inputId, hiddenId) {
         let tags = document.getElementById(hiddenId).value.split(',').filter(Boolean);
         tags.push(value);
         renderTags(boxId, inputId, hiddenId, tags);
+        saveOption(hiddenId, tags.join(','));
     });
 }
 
 function setupClearButton(clearBtnId, boxId, inputId, hiddenId) {
     document.getElementById(clearBtnId).addEventListener('click', () => {
         renderTags(boxId, inputId, hiddenId, []);
+        document.getElementById(inputId).value = '';
+        saveOption(hiddenId, '');
     });
 }
 
@@ -196,7 +219,20 @@ setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 
 document.addEventListener('DOMContentLoaded', restore_options);
-document.getElementById('save').addEventListener('click', save_options);
+document.querySelectorAll('main input, main button').forEach(input => { input.disabled = true; });
+document.addEventListener('change', event => {
+    const input = event.target;
+    if (input.type === 'checkbox') saveOption(input.id, input.checked);
+    if (input.type === 'radio' && input.checked) saveOption(input.name, input.value);
+});
+document.addEventListener('input', event => {
+    const input = event.target;
+    if (input.type === 'text' && !event.isComposing) saveOption(input.id, input.value);
+});
+document.addEventListener('compositionend', event => {
+    const input = event.target;
+    if (input.type === 'text') saveOption(input.id, input.value);
+});
 document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest().version;
 
 document.querySelectorAll('.tab-btn').forEach(btn => {

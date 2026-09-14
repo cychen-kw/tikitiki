@@ -37,12 +37,39 @@ function kktixSelectStep(input, plus, target, state, now) {
 }
 
 const kktixScopeKey = "KktixTicketScope:" + location.pathname.split("/")[2];
-const kktixDefaults = { KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "", [kktixScopeKey]: [] };
+const kktixDefaults = { KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "", KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false, [kktixScopeKey]: [] };
 let kktixSettings;
 let kktixActiveId;
 let kktixRun = {};
 const kktixSavedInfo = new Set();
 const kktixFilledCodes = new WeakSet();
+const kktixHiddenUnits = new WeakMap();
+
+function kktixChoices(row) {
+  try {
+    const values = JSON.parse(row.closest('.ticket-unit').dataset.tikitikiQuantities);
+    if (Array.isArray(values) && values.every(n => Number.isSafeInteger(n) && n >= 0)) return values;
+  } catch { /* Wait for the page-world script to publish the ticket model. */ }
+  return [];
+}
+
+function kktixCandidates(rows, ids, target, order, allowInsufficient) {
+  return rows.map((row, domIndex) => {
+    const choices = kktixChoices(row);
+    const max = Math.max(0, ...choices);
+    const goal = target === 0 ? max : choices.includes(target) ? target :
+      allowInsufficient ? Math.max(0, ...choices.filter(n => n <= target)) : 0;
+    return { row, domIndex, max, goal, rank: ids.indexOf(row.id), rand: Math.random() };
+  }).filter(c => c.rank >= 0 && c.goal > 0).sort((a, b) => {
+    switch (order) {
+      case 'bottom': return b.domIndex - a.domIndex;
+      case 'selected': return a.rank - b.rank;
+      case 'random': return a.rand - b.rand;
+      case 'remaining': return b.max - a.max || a.rand - b.rand;
+      default: return a.domIndex - b.domIndex;
+    }
+  });
+}
 
 function fillKktixQualificationCode(input, code) {
   if (typeof code !== 'string' || !code || input.value || input.disabled || input.readOnly ||
@@ -65,6 +92,15 @@ function updateKktixTickets() {
   for (const row of rows) {
     const name = row.querySelector(".ticket-name");
     if (!name) continue;
+    const unit = row.closest('.ticket-unit');
+    const hide = kktixSettings.KktixHideDisabledArea && /身障|身心障礙|輪椅/.test(name.textContent);
+    if (hide) {
+      if (!kktixHiddenUnits.has(unit)) kktixHiddenUnits.set(unit, unit.style.display);
+      unit.style.display = 'none';
+    } else if (kktixHiddenUnits.has(unit)) {
+      unit.style.display = kktixHiddenUnits.get(unit);
+      kktixHiddenUnits.delete(unit);
+    }
     let toggle = row.querySelector(".tikitiki-ticket-scope");
     if (!toggle) {
       toggle = document.createElement("button");
@@ -73,7 +109,7 @@ function updateKktixTickets() {
       toggle.style.cssText = "margin-left:8px;min-width:26px;min-height:26px;padding:0 5px;border:1px solid #16824b;border-radius:50%;font-size:16px;cursor:pointer;vertical-align:middle;";
       const label = name.textContent.trim();
       toggle.dataset.ticketName = label;
-      toggle.setAttribute("aria-label", label + "：加入或移出自動選票範圍");
+      toggle.setAttribute("aria-label", label + "：加入或移出自動點擊範圍");
       toggle.addEventListener("click", async event => {
         event.preventDefault();
         event.stopPropagation();
@@ -103,9 +139,11 @@ function updateKktixTickets() {
           console.error('TikiTiki: 無法儲存票種名稱', error);
         });
     }
-    if (toggle.getAttribute("aria-pressed") === String(selected)) continue;
-    toggle.textContent = selected ? "✓" : "＋";
-    toggle.title = selected ? "已加入自動選票範圍；點擊移除" : "加入自動選票範圍";
+    const caption = selected ? `✓ ${ids.indexOf(row.id) + 1}` : '＋';
+    if (toggle.textContent === caption) continue;
+    toggle.textContent = caption;
+    toggle.title = selected ? `加入順序 ${ids.indexOf(row.id) + 1}；點擊移除` : "加入自動點擊範圍";
+    toggle.setAttribute('aria-label', toggle.dataset.ticketName + '：' + toggle.title);
     toggle.setAttribute("aria-pressed", String(selected));
     toggle.style.background = selected ? "#16824b" : "#fff";
     toggle.style.color = selected ? "#fff" : "#16824b";
@@ -113,8 +151,10 @@ function updateKktixTickets() {
   if (!kktixSettings.KktixAutoSelect || kktixRun.done) return;
   const target = Number(kktixSettings.KktixTicketNumber);
   if (!Number.isInteger(target) || target < 0 || target > 4) return;
-  for (const row of rows) {
-    if (!ids.includes(row.id) || (kktixActiveId && row.id !== kktixActiveId)) continue;
+  const candidates = kktixCandidates(rows, ids, target, kktixSettings.KktixTieBreak, kktixSettings.KktixAllowInsufficient);
+  for (const { row, goal } of candidates) {
+    if (kktixHiddenUnits.has(row.closest('.ticket-unit'))) continue;
+    if (kktixActiveId && row.id !== kktixActiveId) continue;
     const input = row.querySelector('input[type="text"], input[type="number"]');
     const plus = row.querySelector("button.plus");
     if (!input || input.disabled || !plus || !input.getClientRects().length) continue;
@@ -124,7 +164,9 @@ function updateKktixTickets() {
     if (!kktixActiveId) {
       kktixActiveId = row.id;
     }
-    kktixSelectStep(input, plus, target, kktixRun, Date.now());
+    const next = kktixChoices(row).filter(n => n > Number(input.value)).sort((a, b) => a - b)[0];
+    if (next > goal && Number(input.value) < goal) { kktixRun.done = true; return; }
+    kktixSelectStep(input, plus, goal, kktixRun, Date.now());
     break;
   }
 }

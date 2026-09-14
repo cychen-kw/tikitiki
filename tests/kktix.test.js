@@ -17,8 +17,10 @@ function ticket(id, limit = 4, quantity = 0) {
   };
   let toggle;
   const name = { textContent: id, appendChild(button) { toggle = button; } };
+  const unit = { style: { display: '' }, dataset: { tikitikiQuantities: JSON.stringify(Array.from({ length: limit + 1 }, (_, i) => i)) } };
   return {
     id, input, plus, get toggle() { return toggle; },
+    closest() { return unit; },
     querySelector(selector) {
       if (selector === '.ticket-name') return name;
       if (selector === '.tikitiki-ticket-scope') return toggle;
@@ -63,6 +65,28 @@ async function page(rows, settings = {}, codeInputs = []) {
 }
 
 (async () => {
+  for (const name of ['身障優惠票', '身心障礙及陪同席', '輪椅席']) {
+    const disabled = ticket(name);
+    const normal = ticket('一般票');
+    disabled.closest().style.display = 'block';
+    const hidden = await page([disabled, normal], { KktixHideDisabledArea: true });
+    hidden.tick();
+    assert.equal(disabled.closest().style.display, 'none');
+    assert.equal(disabled.plus.clicks, 0, 'hidden selected tickets must not be clicked');
+    assert.equal(normal.input.value, '2');
+    assert.equal(normal.closest().style.display, '');
+    assert.deepEqual(hidden.stored['KktixTicketScope:event-a'], [name, '一般票'], 'hiding preserves saved scope');
+    await hidden.context.chrome.storage.local.set({ KktixHideDisabledArea: false });
+    assert.equal(disabled.closest().style.display, 'block', 'restore original display after disabling');
+  }
+  const lateDisabled = [];
+  const hiddenPage = await page(lateDisabled, { KktixAutoSelect: false, KktixHideDisabledArea: true });
+  lateDisabled.push(ticket('輪椅陪同席'));
+  hiddenPage.tick();
+  assert.equal(lateDisabled[0].closest().style.display, 'none', 'hide dynamically inserted tickets');
+  const defaultVisible = ticket('身障票');
+  await page([defaultVisible], { KktixAutoSelect: false });
+  assert.equal(defaultVisible.closest().style.display, '', 'hide option defaults off');
   for (const target of [1, 2, 3, 4, 0]) {
     const rows = [ticket('ticket_1'), ticket('ticket_2')];
     const p = await page(rows, { KktixTicketNumber: String(target) });
@@ -120,7 +144,34 @@ async function page(rows, settings = {}, codeInputs = []) {
   const limited = ticket('ticket_1', 1);
   const limitPage = await page([limited]);
   limitPage.tick();
-  assert.equal(limited.plus.clicks, 1, 'respect site limit below target');
+  assert.equal(limited.plus.clicks, 0, 'skip insufficient tickets by default');
+  const allowedLimit = await page([limited], { KktixAllowInsufficient: true });
+  allowedLimit.tick();
+  assert.equal(limited.plus.clicks, 1, 'allow lower legal quantity when enabled');
+
+  for (const [order, first] of [['top', 0], ['bottom', 2], ['selected', 1], ['remaining', 2]]) {
+    const ordered = [ticket('a', 3), ticket('b', 2), ticket('c', 4)];
+    const orderedPage = await page(ordered, { KktixTieBreak: order, 'KktixTicketScope:event-a': ['b', 'c', 'a'] });
+    orderedPage.tick();
+    orderedPage.tick();
+    assert.equal(ordered[first].input.value, '2', order);
+    assert.equal(ordered.filter(row => row.plus.clicks > 0).length, 1);
+    assert.equal(ordered[1].toggle.textContent, '✓ 1');
+    assert.equal(ordered[0].toggle.textContent, '✓ 3');
+    await ordered[1].toggle.click({ preventDefault() {}, stopPropagation() {} });
+    assert.equal(ordered[2].toggle.textContent, '✓ 1', 'renumber after removal');
+  }
+  const group = ticket('group', 10);
+  group.closest().dataset.tikitikiQuantities = '[0,5,10]';
+  const fallback = ticket('normal');
+  const groupPage = await page([group, fallback]);
+  groupPage.tick();
+  assert.equal(group.plus.clicks, 0, 'never overshoot target with group tickets');
+  assert.equal(fallback.input.value, '2');
+  const randomRows = [ticket('random-a'), ticket('random-b')];
+  const randomPage = await page(randomRows, { KktixTieBreak: 'random' });
+  for (let i = 0; i < 10; i++) randomPage.tick();
+  assert.equal(randomRows.filter(row => row.input.value === '2').length, 1, 'random choice stays locked');
 
   const delayed = ticket('ticket_delayed');
   delayed.plus.click = function () { this.clicks++; };

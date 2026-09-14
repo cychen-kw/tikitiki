@@ -19,10 +19,10 @@
         <div class="brand-ver" id="ver"></div>
       </div>
     </div>
-    <button id="save" class="save-btn">儲存設定</button>
+    <span class="hint">設定變更後自動儲存</span>
   </header>
 
-  <div id="status" class="toast"></div>
+  <div id="status" class="toast" role="status"></div>
 
   <div class="tab-bar">
     <button type="button" class="tab-btn active" data-tab="tixcraft"><span class="tab-icon tab-icon-tixcraft">T</span> 拓元 tixCraft</button>
@@ -40,7 +40,7 @@
     </section>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🪑</span>選區</h2>
+      <h2 class="card-title"><span class="card-icon">🪑</span>區域顯示</h2>
 
       <label class="row">
         <input type="checkbox" id="HideBadArea" class='option toggle-switch' />
@@ -49,7 +49,7 @@
 
       <label class="row">
         <input type="checkbox" id="HideDisabledArea" class='option toggle-switch' />
-        <span>自動隱藏身障區</span>
+        <span>自動隱藏身障區<br><small>區域名稱包含「身障」「身心障礙」「輪椅」時隱藏。</small></span>
       </label>
 
       <label class="row">
@@ -67,6 +67,7 @@
         </div>
         <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
       </div>
+      <p class="hint indent">關鍵字按 Enter 新增後自動儲存；啟用「僅顯示」且清空時會隱藏所有區域。</p>
       <input type="hidden" id="AreaName">
     </section>
 
@@ -83,39 +84,40 @@
         </div>
         <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
       </div>
+      <p class="hint indent">清空關鍵字代表不限區域；仍會排除已隱藏的區域。按 Enter 新增，可拖曳泡泡換順序（或按 Alt + 左右方向鍵），變更後自動儲存；選擇「加入順序」時依此排列優先點擊。</p>
       <input type="hidden" id="AutoClickAreaName">
 
       <div class="subpanel indent">
         <label class="row">
           <input type="checkbox" id="AutoClickAllowInsufficient" class='option toggle-switch' />
-          <span>允許點擊票數不足的區域<br><small>不勾選的話，只會點有足夠票數或熱賣中的區域</small></span>
+          <span>允許點擊票數不足的區域<br><small>選區時只考慮足夠票數或熱賣中的區域；允許不足時可放寬條件，選票張數不超過目標。</small></span>
         </label>
 
         <div class="field-label" style="margin-top:14px;">符合條件的區域有多個時，優先點擊</div>
         <div class="radio-group radio-group-vertical">
-          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top">畫面排前面（通常較貴）</label>
-          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面排後面（通常較便宜）</label>
-          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">關鍵字輸入順序</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="top">畫面順序（由上到下）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="bottom">畫面順序（由下到上）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="keyword">加入順序</label>
           <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="random">隨機</label>
-          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="remaining">票數最多者（同票或都熱賣中則隨機）</label>
+          <label class="radio-option"><input type="radio" name="AutoClickTieBreak" value="remaining">剩餘票數最多（同票或都熱賣中則隨機）</label>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🎫</span>張數選擇</h2>
+      <h2 class="card-title"><span class="card-icon">🎫</span>購票張數</h2>
       <div class="radio-group">
         <label class="radio-option"><input type="radio" name="TicketNumber" value="0">最大張數</label>
-        <label class="radio-option"><input type="radio" name="TicketNumber" value="1">1</label>
-        <label class="radio-option"><input type="radio" name="TicketNumber" value="2">2</label>
-        <label class="radio-option"><input type="radio" name="TicketNumber" value="3">3</label>
-        <label class="radio-option"><input type="radio" name="TicketNumber" value="4">4</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="1">1 張</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="2">2 張</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="3">3 張</label>
+        <label class="radio-option"><input type="radio" name="TicketNumber" value="4">4 張</label>
       </div>
     </section>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🔐</span>驗證碼</h2>
-      <div class="field-label">自訂字串（銀行自動偵測失敗時使用）</div>
+      <h2 class="card-title"><span class="card-icon">🔐</span>購票驗證字串</h2>
+      <div class="field-label">自訂字串（有值時優先填入，留空才自動偵測銀行）</div>
       <input type="text" id="VerifyCode" placeholder="例如信用卡卡號前六碼">
       <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
     </section>
@@ -125,16 +127,38 @@
   <main class="sections" id="tab-kktix" hidden>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🔑</span>資格碼</h2>
-      <label class="field-label" for="KktixQualificationCode">自訂資格碼</label>
-      <input type="text" id="KktixQualificationCode" placeholder="輸入完整資格碼" autocomplete="off" spellcheck="false">
-      <p class="hint">選票後自動填入出現的資格碼欄位，適用於手動及自動選票。請保留正確大小寫與符號；留空即停用，不會覆蓋已輸入的內容。</p>
+      <h2 class="card-title"><span class="card-icon">🪑</span>區域顯示</h2>
+      <label class="row">
+        <input type="checkbox" id="KktixHideDisabledArea" class="option toggle-switch">
+        <span>隱藏身障票種<br><small>票種名稱包含「身障」「身心障礙」「輪椅」時隱藏，並排除自動點擊。</small></span>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
+      <label class="row">
+        <input type="checkbox" id="KktixAutoSelect" class="option toggle-switch">
+        <span>自動點擊已加入範圍的票種</span>
+      </label>
+      <p class="hint">在報名頁點票種旁的「＋」加入範圍，點「✓」移除；範圍依活動自動儲存。未加入任何票種時不會自動點擊。</p>
+      <p class="hint">綠色「✓ 1、✓ 2…」標示加入範圍的順序，移除後重新加入會排到最後。每次只選一種票；下一步由你確認。</p>
+      <div class="subpanel indent">
+        <label class="row"><input type="checkbox" id="KktixAllowInsufficient" class="option toggle-switch"><span>允許選擇票數不足的票種<br><small>選擇不超過目標的最高合法張數；不勾選時須能剛好選到目標張數。</small></span></label>
+        <div class="field-label" style="margin-top:14px;">符合條件的票種有多個時，優先點擊</div>
+        <div class="radio-group radio-group-vertical">
+          <label class="radio-option"><input type="radio" name="KktixTieBreak" value="top" checked>畫面順序（由上到下）</label>
+          <label class="radio-option"><input type="radio" name="KktixTieBreak" value="bottom">畫面順序（由下到上）</label>
+          <label class="radio-option"><input type="radio" name="KktixTieBreak" value="selected">加入順序</label>
+          <label class="radio-option"><input type="radio" name="KktixTieBreak" value="random">隨機</label>
+          <label class="radio-option"><input type="radio" name="KktixTieBreak" value="remaining">票種上限最多者（同上限隨機）</label>
+        </div>
+      </div>
     </section>
 
     <section class="card">
       <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
-      <button type="button" class="clear-btn" id="KktixScopeClear" disabled>全部清空</button>
-      <p class="hint">刪除與清空會立即儲存，並同步到已開啟的報名頁。全部清空會移除所有活動的選票範圍。</p>
+      <button type="button" class="clear-btn" id="KktixScopeClear" disabled>清空所有活動的票種</button>
+      <p class="hint">移除與清空會立即儲存，並同步到已開啟的報名頁。清空後不會自動點擊任何票種。</p>
       <p id="KktixScopeStatus" class="hint" role="status"></p>
       <div class="scope-table-wrap">
         <table class="scope-table">
@@ -145,25 +169,22 @@
     </section>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">⚡</span>自動選票</h2>
-      <label class="row">
-        <input type="checkbox" id="KktixAutoSelect" class="option toggle-switch">
-        <span>自動選擇已加入範圍的票種</span>
-      </label>
-      <p class="hint">在報名頁點票種旁的「＋」加入範圍，點「✓」移除；範圍依活動自動儲存。未加入任何票種時不會自動選票。</p>
-      <p class="hint">依畫面順序選擇第一個可加票的票種，達到指定張數或網站上限後停止；下一步由你確認。</p>
+      <h2 class="card-title"><span class="card-icon">🎫</span>購票張數</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="1">1 張</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="2" checked>2 張</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="3">3 張</label>
+        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="4">4 張</label>
+      </div>
+      <p class="hint">最大張數會逐次點擊原本的加號，直到網站不允許增加；已選張數會計入目標。</p>
     </section>
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🎫</span>張數選擇</h2>
-      <div class="radio-group">
-        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="0">最大張數</label>
-        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="1">1</label>
-        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="2" checked>2</label>
-        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="3">3</label>
-        <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="4">4</label>
-      </div>
-      <p class="hint">最大張數會逐次點擊原本的加號，直到網站不允許增加；已選張數會計入目標。</p>
+      <h2 class="card-title"><span class="card-icon">🔑</span>資格碼</h2>
+      <label class="field-label" for="KktixQualificationCode">自訂資格碼</label>
+      <input type="text" id="KktixQualificationCode" placeholder="輸入完整資格碼" autocomplete="off" spellcheck="false">
+      <p class="hint">選票後自動填入出現的資格碼欄位，適用於手動及自動點擊。請保留正確大小寫與符號；留空即停用，不會覆蓋已輸入的內容。</p>
     </section>
 
     <section class="card">

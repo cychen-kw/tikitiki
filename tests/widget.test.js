@@ -11,7 +11,11 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     function element(id) {
       if (!elements.has(id)) elements.set(id, {
         style: {}, addEventListener(type, handler) { this[type] = handler; },
-        querySelector: element
+        querySelector: element,
+        getBoundingClientRect() { return { left: parseFloat(this.style.left) || 600, top: parseFloat(this.style.top) || 14, width: 180, height: 120 }; },
+        setPointerCapture(id) { this.capture = id; },
+        hasPointerCapture(id) { return this.capture === id; },
+        releasePointerCapture() { this.capture = null; }
       });
       return elements.get(id);
     }
@@ -19,6 +23,7 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     let listener, tick, callbacks = 0;
     const context = vm.createContext({
       console, Date,
+      window: { innerWidth: 800, innerHeight: 600, addEventListener() {} },
       setInterval(fn, delay) { assert.equal(delay, 1000); tick = fn; },
       document: { getElementById: () => null, createElement: element,
         head: { appendChild() {} }, body: { appendChild() {} } },
@@ -37,6 +42,12 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     if (key === 'AutoClickArea') context.addClockWidget(() => callbacks++);
     else context.addClockWidget(undefined, key);
     const toggle = element('#tikitikiAutoClickToggle');
+    const orderKey = key === 'KktixAutoSelect' ? 'KktixTieBreak' : 'AutoClickTieBreak';
+    assert.match(element('#tikitikiPriority').textContent, /優先：/);
+    listener({ [orderKey]: { newValue: 'bottom' } }, 'local');
+    assert.equal(element('#tikitikiPriority').textContent, '優先：畫面順序（由下到上）');
+    listener({ [orderKey]: { newValue: 'remaining' } }, 'local');
+    assert.equal(element('#tikitikiPriority').textContent, key === 'KktixAutoSelect' ? '優先：票種上限最多' : '優先：剩餘票數最多');
     toggle.checked = true;
     await toggle.change();
     assert.equal(stored[key], true);
@@ -48,8 +59,22 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     assert.match(element('#tikitikiClock').textContent, /\d{2}:\d{2}:\d{2}/);
     element('#tikitikiMinimize').click();
     assert.equal(element('#tikitikiToggleRow').style.display, 'none');
+    assert.equal(element('#tikitikiPriority').style.display, 'none');
     element('#tikitikiMinimize').click();
     assert.equal(element('#tikitikiToggleRow').style.display, '');
+    const clock = element('#tikitikiClock'), widget = element('div');
+    clock.pointerdown({ button: 0, pointerId: 1, clientX: 620, clientY: 24, preventDefault() {} });
+    clock.pointermove({ pointerId: 1, clientX: 120, clientY: 210 });
+    assert.equal(widget.style.left, '100px');
+    assert.equal(widget.style.top, '200px');
+    clock.pointermove({ pointerId: 1, clientX: 1000, clientY: -10 });
+    assert.equal(widget.style.left, '620px');
+    assert.equal(widget.style.top, '0px');
+    clock.pointercancel({ pointerId: 1 });
+    clock.pointermove({ pointerId: 1, clientX: 100, clientY: 100 });
+    assert.equal(widget.style.left, '620px', 'cancel stops dragging');
+    assert.equal(clock.capture, null);
+    assert.equal(callbacks, key === 'AutoClickArea' ? 1 : 0, 'drag does not trigger auto-click');
   }
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../manifest.json'), 'utf8'));
   const scripts = manifest.content_scripts.find(entry => entry.js.includes('js/kktix/kktix.js')).js;

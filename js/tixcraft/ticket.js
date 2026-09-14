@@ -4,23 +4,18 @@ addClockWidget();
 let ticketOptions = document.querySelectorAll("#ticketPriceList select:first-of-type option");
 if (ticketOptions.length) {
   chrome.storage.local.get({
-    TicketNumber: 0
+    TicketNumber: 0,
+    AutoClickAllowInsufficient: false
   }, items => {
-    let selected = false;
-
-    if (items.TicketNumber > 0) {
-      for (let option of ticketOptions) {
-        if (option.value == items.TicketNumber) {
-          option.selected = true;
-          selected = true;
-          break;
-        }
-      }
-    }
-    // if ticket number can't find or last
-    if (!selected) {
-      ticketOptions[ticketOptions.length - 1].selected = true;
-    }
+    const target = Number(items.TicketNumber);
+    if (!Number.isInteger(target) || target < 0 || target > 4) return;
+    const available = [...ticketOptions].filter(option =>
+      !option.disabled && Number.isInteger(Number(option.value)) && Number(option.value) > 0);
+    const exact = available.find(option => Number(option.value) === target);
+    const lower = available.filter(option => target === 0 || Number(option.value) <= target)
+      .sort((a, b) => Number(b.value) - Number(a.value))[0];
+    const chosen = target === 0 || items.AutoClickAllowInsufficient ? lower : exact;
+    if (chosen) chosen.selected = true;
   });
 }
 
