@@ -54,9 +54,43 @@ body {
   gap: 10px;
 }
 
+.brand-logo-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .brand-logo {
+  display: inline-block;
   font-size: 26px;
   line-height: 1;
+  cursor: pointer;
+}
+
+.brand-logo.shake {
+  animation: tiki-shake 0.4s ease;
+}
+
+@keyframes tiki-shake {
+  10%, 90% { transform: translateX(-1px) rotate(-8deg); }
+  20%, 80% { transform: translateX(2px) rotate(8deg); }
+  30%, 50%, 70% { transform: translateX(-3px) rotate(-6deg); }
+  40%, 60% { transform: translateX(3px) rotate(6deg); }
+}
+
+.spray-particle {
+  position: absolute;
+  top: 50%;
+  left: 30%;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.85;
+  animation: tiki-spray-particle 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes tiki-spray-particle {
+  from { transform: translate(0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity: 0; }
 }
 
 .brand-name {

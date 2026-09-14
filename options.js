@@ -134,3 +134,33 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         });
     });
 });
+
+document.getElementById('brandLogo').addEventListener('click', () => {
+    let logo = document.getElementById('brandLogo');
+    let wrap = document.getElementById('brandLogoWrap');
+
+    logo.classList.remove('shake');
+    void logo.offsetWidth; // restart the animation even if clicked again mid-shake
+    logo.classList.add('shake');
+
+    for (let i = 0; i < 14; i++) {
+        let particle = document.createElement('span');
+        particle.className = 'spray-particle';
+
+        let size = 2 + Math.random() * 3;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.top = (35 + Math.random() * 30) + '%';
+
+        // mostly leftward with some vertical scatter, like a mist cone
+        let tx = -(14 + Math.random() * 26) + 'px';
+        let ty = (Math.random() * 24 - 12) + 'px';
+        particle.style.setProperty('--tx', tx);
+        particle.style.setProperty('--ty', ty);
+        particle.style.animationDelay = (Math.random() * 80) + 'ms';
+        particle.style.animationDuration = (0.45 + Math.random() * 0.3) + 's';
+
+        wrap.appendChild(particle);
+        particle.addEventListener('animationend', () => particle.remove());
+    }
+});

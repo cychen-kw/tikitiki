@@ -1,13 +1,13 @@
 {
-  "name": "tikitiki",
-  "description": "搶票野獸",
+  "name": "TikiTiki",
+  "description": "有票噴霧",
   "version": "1.0.0",
   "permissions": [ "activeTab", "storage" ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "購票輔助",
+    "default_title": "有票噴霧",
     "default_icon": {
       "16": "assets/icon16.png",
       "32": "assets/icon32.png",
