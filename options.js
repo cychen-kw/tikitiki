@@ -47,7 +47,18 @@ function saveOption(key, value) {
 async function restore_options() {
     renderKktixScope();
     try {
-        const items = await chrome.storage.local.get(optionDefaults);
+        const items = await chrome.storage.local.get({ ...optionDefaults, OptionsLastTab: 'tixcraft' });
+        if (!tabChanged) {
+            const sourceTab = typeof location === 'undefined' ? '' : location.hash.slice(1);
+            const explicitTab = ['tixcraft', 'kktix'].includes(sourceTab);
+            selectTab(explicitTab ? sourceTab : items.OptionsLastTab);
+            if (explicitTab) {
+                chrome.storage.local.set({ OptionsLastTab: sourceTab }).catch(error => {
+                    document.getElementById('status').textContent = '分頁記錄儲存失敗，請重試。';
+                    console.error(error);
+                });
+            }
+        }
         for (const key of Object.keys(optionDefaults)) applyOption(key, items[key]);
         optionsReady = true;
         document.querySelectorAll('main input, main button').forEach(input => {
@@ -68,20 +79,85 @@ async function renderKktixScope() {
         let count = 0;
         for (const [key, ids] of Object.entries(items)) {
             if (!key.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
-            for (const id of ids) {
-                if (typeof id !== 'string') continue;
+            const tickets = ids.filter(id => typeof id === 'string');
+            if (!tickets.length) continue;
+            const eventId = key.slice('KktixTicketScope:'.length);
+            const eventName = tickets.map(id => items['KktixTicketInfo:' + eventId + ':' + id]?.eventName).find(Boolean) || eventId;
+            const group = document.createElement('tr');
+            group.className = 'scope-group';
+            const heading = document.createElement('th');
+            heading.colSpan = 3;
+            heading.setAttribute('scope', 'rowgroup');
+            const title = document.createElement('a');
+            title.textContent = `${eventName}（${tickets.length} 個票種）`;
+            title.href = 'https://kktix.com/events/' + encodeURIComponent(eventId) + '/registrations/new';
+            title.target = '_blank';
+            title.rel = 'noopener noreferrer';
+            heading.appendChild(title);
+            const clear = document.createElement('button');
+            clear.type = 'button';
+            clear.className = 'clear-btn';
+            clear.textContent = '清空此活動';
+            clear.setAttribute('aria-label', '清空 ' + eventName);
+            clear.addEventListener('click', () => deleteKktixScope(key));
+            heading.appendChild(clear);
+            group.appendChild(heading);
+            body.appendChild(group);
+            let draggedId = null;
+            for (const [index, id] of tickets.entries()) {
                 const info = items[key.replace('KktixTicketScope:', 'KktixTicketInfo:') + ':' + id];
                 const row = document.createElement('tr');
-                for (const value of [id, info?.eventName || key.slice('KktixTicketScope:'.length), info?.ticketName || '重新開啟報名頁後補上名稱']) {
+                for (const value of [index + 1]) {
                     const cell = document.createElement('td');
+                    cell.className = 'scope-order';
                     cell.textContent = value;
                     row.appendChild(cell);
                 }
+                const handle = document.createElement('button');
+                handle.type = 'button';
+                handle.className = 'clear-btn scope-drag';
+                handle.textContent = '⠿';
+                handle.draggable = true;
+                handle.title = '拖曳排序，或按 Alt + 上下方向鍵移動';
+                handle.setAttribute('aria-label', '移動 ' + (info?.ticketName || id));
+                row.children[0].appendChild(handle);
+                handle.addEventListener('dragstart', event => {
+                    draggedId = id;
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', id);
+                });
+                handle.addEventListener('dragend', () => { draggedId = null; });
+                row.addEventListener('dragover', event => {
+                    if (draggedId === null) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                });
+                row.addEventListener('drop', event => {
+                    if (draggedId === null) return;
+                    event.preventDefault();
+                    const source = draggedId;
+                    draggedId = null;
+                    return moveKktixScope(key, source, id);
+                });
+                handle.addEventListener('keydown', event => {
+                    if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+                    event.preventDefault();
+                    const target = tickets[index + (event.key === 'ArrowUp' ? -1 : 1)];
+                    if (target) return moveKktixScope(key, id, target);
+                });
+                const nameCell = document.createElement('td');
+                nameCell.textContent = info?.ticketName || '重新開啟報名頁後補上名稱';
+                const ticketId = document.createElement('small');
+                ticketId.className = 'scope-ticket-id';
+                ticketId.textContent = id;
+                nameCell.appendChild(ticketId);
+                row.appendChild(nameCell);
                 const cell = document.createElement('td');
                 const remove = document.createElement('button');
                 remove.type = 'button';
                 remove.className = 'clear-btn';
-                remove.textContent = '移除';
+                remove.textContent = '×';
+                remove.title = '移除票種';
                 remove.setAttribute('aria-label', `移除 ${info?.eventName || key.slice('KktixTicketScope:'.length)} ${info?.ticketName || id}`);
                 remove.addEventListener('click', () => deleteKktixScope(key, id));
                 cell.appendChild(remove);
@@ -104,12 +180,28 @@ async function deleteKktixScope(key, id) {
         const updates = {};
         for (const [scopeKey, ids] of Object.entries(items)) {
             if (!scopeKey.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
-            if (!key || key === scopeKey) updates[scopeKey] = key ? ids.filter(value => value !== id) : [];
+            if (!key || key === scopeKey) updates[scopeKey] = key && id !== undefined ? ids.filter(value => value !== id) : [];
         }
         await chrome.storage.local.set(updates);
         await renderKktixScope();
     } catch (error) {
         document.getElementById('KktixScopeStatus').textContent = '移除失敗，請重試。';
+        console.error(error);
+    }
+}
+
+async function moveKktixScope(key, id, targetId) {
+    try {
+        const items = await chrome.storage.local.get(key);
+        const ids = items[key];
+        if (!Array.isArray(ids)) return;
+        const from = ids.indexOf(id), to = ids.indexOf(targetId);
+        if (from < 0 || to < 0 || from === to) return;
+        ids.splice(to, 0, ids.splice(from, 1)[0]);
+        await chrome.storage.local.set({ [key]: ids });
+        await renderKktixScope();
+    } catch (error) {
+        document.getElementById('KktixScopeStatus').textContent = '排序儲存失敗，請重試。';
         console.error(error);
     }
 }
@@ -235,13 +327,26 @@ document.addEventListener('compositionend', event => {
 });
 document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest().version;
 
+let tabChanged = false;
+function selectTab(tab) {
+    if (!['tixcraft', 'kktix'].includes(tab)) tab = 'tixcraft';
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('main.sections').forEach(main => {
+        main.hidden = main.id !== 'tab-' + tab;
+    });
+}
 document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('main.sections').forEach(main => {
-            main.hidden = main.id !== 'tab-' + btn.dataset.tab;
-        });
+    btn.addEventListener('click', async () => {
+        tabChanged = true;
+        selectTab(btn.dataset.tab);
+        try {
+            await chrome.storage.local.set({ OptionsLastTab: btn.dataset.tab });
+        } catch (error) {
+            document.getElementById('status').textContent = '分頁記錄儲存失敗，請重試。';
+            console.error(error);
+        }
     });
 });
 

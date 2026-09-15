@@ -1,6 +1,21 @@
 // area
 const badAreaArray = ["遮擋", "護網", "鐵網", "不完整"];
 
+const highlightStyle = document.createElement('style');
+highlightStyle.textContent = 'ul.area-list > li.tikitiki-area-match, ul.area-list > li.tikitiki-area-match > a { background-color: #fff3bf !important; }';
+document.head.appendChild(highlightStyle);
+
+function highlightAreas(keywordString) {
+  const keywords = keywordString.split(',').filter(Boolean);
+  document.querySelectorAll('ul.area-list > li').forEach(li => {
+    li.classList.toggle('tikitiki-area-match', keywords.some(keyword => li.textContent.includes(keyword)));
+  });
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.AutoClickAreaName) highlightAreas(changes.AutoClickAreaName.newValue || '');
+});
+
 function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient) {
   // no keywords means every area is acceptable
   let keywords = keywordString.length ? keywordString.split(',') : [];
@@ -69,6 +84,7 @@ chrome.storage.local.get({
   AutoClickAllowInsufficient: false,
   TicketNumber: 0
 }, items => {
+  highlightAreas(items.AutoClickAreaName);
   // TicketNumber 0 means "max available", so any ticket at all counts as enough
   let neededTickets = items.TicketNumber > 0 ? parseInt(items.TicketNumber, 10) : 1;
 

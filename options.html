@@ -32,29 +32,21 @@
   <main class="sections" id="tab-tixcraft">
 
     <section class="card">
-      <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
-      <label class="row">
-        <input type="checkbox" id="ProgramOnly" class='option toggle-switch' />
-        <span>自動跳過節目介紹頁，直接前往場次列表</span>
-      </label>
-    </section>
-
-    <section class="card">
       <h2 class="card-title"><span class="card-icon">🪑</span>區域顯示</h2>
 
       <label class="row">
         <input type="checkbox" id="HideBadArea" class='option toggle-switch' />
-        <span>自動隱藏「遮擋」「護網」「鐵網」「不完整」區</span>
+        <span>隱藏「遮擋」「護網」「鐵網」「不完整」區</span>
       </label>
 
       <label class="row">
         <input type="checkbox" id="HideDisabledArea" class='option toggle-switch' />
-        <span>自動隱藏身障區<br><small>區域名稱包含「身障」「身心障礙」「輪椅」時隱藏。</small></span>
+        <span>隱藏身障區<br><small>區域名稱包含「身障」「身心障礙」「輪椅」時隱藏。</small></span>
       </label>
 
       <label class="row">
         <input type="checkbox" id="HideSoldOutArea" class='option toggle-switch' />
-        <span>自動隱藏已售完的區域</span>
+        <span>隱藏已售完的區域</span>
       </label>
 
       <label class="row">
@@ -122,6 +114,14 @@
       <div class="hint">目前支援自動偵測的銀行：中信 (418230)、富邦 (552046)、玉山 (524255)</div>
     </section>
 
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎯</span>節目與場次</h2>
+      <label class="row">
+        <input type="checkbox" id="ProgramOnly" class='option toggle-switch' />
+        <span>自動跳過節目介紹頁，直接前往場次列表<br><small>自動跳轉到 /game 頁面。</small></span>
+      </label>
+    </section>
+
   </main>
 
   <main class="sections" id="tab-kktix" hidden>
@@ -157,15 +157,16 @@
 
     <section class="card">
       <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
-      <button type="button" class="clear-btn" id="KktixScopeClear" disabled>清空所有活動的票種</button>
-      <p class="hint">移除與清空會立即儲存，並同步到已開啟的報名頁。清空後不會自動點擊任何票種。</p>
+      <p class="hint">拖曳 ⠿ 調整順序 · 點活動名稱前往購票</p>
+      <details class="scope-help"><summary>排序與清空說明</summary><p class="hint">變更會自動儲存並同步報名頁編號。「加入順序」規則會依此排序點擊。也可聚焦 ⠿ 後按 Alt + 上下方向鍵移動；× 可移除單一票種。清空所有活動後不會自動點擊任何票種。</p></details>
       <p id="KktixScopeStatus" class="hint" role="status"></p>
       <div class="scope-table-wrap">
         <table class="scope-table">
-          <thead><tr><th scope="col">ID</th><th scope="col">節目名稱</th><th scope="col">票種</th><th scope="col">操作</th></tr></thead>
+          <thead><tr><th scope="col">順序</th><th scope="col">票種</th><th scope="col">移除</th></tr></thead>
           <tbody id="KktixScopeList"></tbody>
         </table>
       </div>
+      <div class="scope-footer"><button type="button" class="clear-btn" id="KktixScopeClear" disabled>清空所有活動的票種</button></div>
     </section>
 
     <section class="card">

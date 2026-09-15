@@ -49,7 +49,9 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
           'position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;">' +
         '<span>自動點擊</span>' +
       '</label>' +
-      '<div id="tikitikiPriority" style="font-size:12px;color:#555;margin-top:6px;"></div>';
+      '<div id="tikitikiPriority" style="font-size:12px;color:#555;margin-top:6px;"></div>' +
+      '<div id="tikitikiLoginWarning" role="status" style="display:none;margin-top:8px;padding:6px 8px;' +
+        'border:1px solid #b32029;border-radius:6px;background:#fff0f0;color:#b32029;font-size:13px;font-weight:700;"></div>';
     document.body.appendChild(widget);
 
     let clock = widget.querySelector("#tikitikiClock");
@@ -91,8 +93,17 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     }
     window.addEventListener('resize', keepVisible);
     widget.addEventListener('transitionend', keepVisible);
+    const loginWarning = widget.querySelector('#tikitikiLoginWarning');
     function tick() {
       clock.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+      if (kktix) return;
+      const state = typeof getTikitikiLoginState === 'function' ? getTikitikiLoginState() : null;
+      const message = state === false ? '⚠ 尚未登入，請先登入' : state === null ? '登入狀態無法確認' : '';
+      if (loginWarning.textContent !== message) {
+        loginWarning.textContent = message;
+        loginWarning.style.display = message ? 'block' : 'none';
+        keepVisible();
+      }
     }
     tick();
     setInterval(tick, 1000);
@@ -112,7 +123,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     let settingsBtn = widget.querySelector("#tikitikiSettings");
     settingsBtn.addEventListener("mouseenter", () => settingsBtn.style.background = "#f2f2f2");
     settingsBtn.addEventListener("mouseleave", () => settingsBtn.style.background = "transparent");
-    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true }));
+    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: kktix ? 'kktix' : 'tixcraft' }));
 
     let minimized = false;
     minimizeBtn.addEventListener("click", () => {

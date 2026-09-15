@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
 
 (async () => {
   for (const key of ['AutoClickArea', 'KktixAutoSelect']) {
@@ -20,14 +20,18 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
       return elements.get(id);
     }
     const stored = { AutoClickArea: false, KktixAutoSelect: false };
-    let listener, tick, callbacks = 0;
+    let listener, tick, callbacks = 0, loginState = false;
     const context = vm.createContext({
       console, Date,
+      getTikitikiLoginState: () => { assert.equal(key, 'AutoClickArea'); return loginState; },
       window: { innerWidth: 800, innerHeight: 600, addEventListener() {} },
       setInterval(fn, delay) { assert.equal(delay, 1000); tick = fn; },
       document: { getElementById: () => null, createElement: element,
         head: { appendChild() {} }, body: { appendChild() {} } },
-      chrome: { storage: {
+      chrome: { runtime: { sendMessage(message) {
+        assert.equal(message.tikitikiOpenOptions, true);
+        assert.equal(message.platform, key === 'AutoClickArea' ? 'tixcraft' : 'kktix');
+      } }, storage: {
         local: {
           get(defaults, callback) { callback({ ...defaults, ...stored }); },
           async set(values) {
@@ -42,6 +46,15 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     if (key === 'AutoClickArea') context.addClockWidget(() => callbacks++);
     else context.addClockWidget(undefined, key);
     const toggle = element('#tikitikiAutoClickToggle');
+    element('#tikitikiSettings').click();
+    const warning = element('#tikitikiLoginWarning');
+    if (key === 'AutoClickArea') assert.match(warning.textContent, /尚未登入/);
+    else assert.equal(warning.textContent, undefined, 'KKTIX does not display login status');
+    loginState = true;
+    tick();
+    if (key === 'AutoClickArea') assert.equal(warning.style.display, 'none');
+    loginState = false;
+    tick();
     const orderKey = key === 'KktixAutoSelect' ? 'KktixTieBreak' : 'AutoClickTieBreak';
     assert.match(element('#tikitikiPriority').textContent, /優先：/);
     listener({ [orderKey]: { newValue: 'bottom' } }, 'local');
@@ -60,6 +73,7 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
     element('#tikitikiMinimize').click();
     assert.equal(element('#tikitikiToggleRow').style.display, 'none');
     assert.equal(element('#tikitikiPriority').style.display, 'none');
+    if (key === 'AutoClickArea') assert.equal(warning.style.display, 'block', 'login warning remains visible when minimized');
     element('#tikitikiMinimize').click();
     assert.equal(element('#tikitikiToggleRow').style.display, '');
     const clock = element('#tikitikiClock'), widget = element('div');
@@ -78,6 +92,6 @@ const source = fs.readFileSync(path.join(__dirname, '../js/tixcraft/widget.js'),
   }
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../manifest.json'), 'utf8'));
   const scripts = manifest.content_scripts.find(entry => entry.js.includes('js/kktix/kktix.js')).js;
-  assert.ok(scripts.indexOf('js/tixcraft/widget.js') < scripts.indexOf('js/kktix/kktix.js'));
+  assert.ok(scripts.indexOf('js/widget.js') < scripts.indexOf('js/kktix/kktix.js'));
   console.log('Widget checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,7 +1,7 @@
 {
   "name": "TikiTiki",
   "description": "有票噴霧",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "permissions": [ "activeTab", "storage" ],
   "background": {
     "service_worker": "background.js"
@@ -32,32 +32,32 @@
     {
       "matches" : [ "https://tixcraft.com/ticket/ticket/*" ],
       "run_at": "document_end",
-      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/ticket.js" ]
+      "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/ticket.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/area/*" ],
       "run_at": "document_end",
-      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/area.js" ]
+      "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/area.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/game/*" ],
       "run_at": "document_end",
-      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/game.js" ]
+      "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/game.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/activity/detail/*" ],
       "run_at": "document_end",
-      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/detail.js" ]
+      "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/detail.js" ]
     },
     {
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],
       "run_at": "document_end",
-      "js" : [ "js/tixcraft/widget.js", "js/tixcraft/verify.js" ]
+      "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/verify.js" ]
     },
     {
       "matches" : [ "https://kktix.com/events/*/registrations/new*" ],
       "run_at": "document_idle",
-      "js" : [ "js/tixcraft/widget.js", "js/kktix/kktix.js" ]
+      "js" : [ "js/widget.js", "js/kktix/kktix.js" ]
     }
   ],
   "manifest_version": 3
