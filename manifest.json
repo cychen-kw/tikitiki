@@ -24,6 +24,19 @@
   "options_page": "options.html",
   "content_scripts" : [
     {
+      "matches": [
+        "https://orders.ibon.com.tw/application/UTK02/UTK0201_000.aspx*",
+        "https://orders.ibon.com.tw/application/UTK02/UTK0201_001.aspx*"
+      ],
+      "run_at": "document_idle",
+      "js": [ "js/widget.js", "js/ibon/ibon.js" ]
+    },
+    {
+      "matches": [ "https://ticket.ibon.com.tw/ActivityInfo/Details/*" ],
+      "run_at": "document_idle",
+      "js": [ "js/widget.js", "js/ibon/detail.js" ]
+    },
+    {
       "matches": [ "https://kktix.com/events/*/registrations/new*" ],
       "run_at": "document_idle",
       "world": "MAIN",

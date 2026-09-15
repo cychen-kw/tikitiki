@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
 
 (async () => {
-  for (const key of ['AutoClickArea', 'KktixAutoSelect']) {
+  for (const key of ['AutoClickArea', 'KktixAutoSelect', 'IbonAutoSelect']) {
     const elements = new Map();
     function element(id) {
       if (!elements.has(id)) elements.set(id, {
@@ -30,7 +30,7 @@ const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
         head: { appendChild() {} }, body: { appendChild() {} } },
       chrome: { runtime: { sendMessage(message) {
         assert.equal(message.tikitikiOpenOptions, true);
-        assert.equal(message.platform, key === 'AutoClickArea' ? 'tixcraft' : 'kktix');
+        assert.equal(message.platform, key === 'IbonAutoSelect' ? 'ibon' : key === 'AutoClickArea' ? 'tixcraft' : 'kktix');
       } }, storage: {
         local: {
           get(defaults, callback) { callback({ ...defaults, ...stored }); },
@@ -55,12 +55,12 @@ const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
     if (key === 'AutoClickArea') assert.equal(warning.style.display, 'none');
     loginState = false;
     tick();
-    const orderKey = key === 'KktixAutoSelect' ? 'KktixTieBreak' : 'AutoClickTieBreak';
+    const orderKey = key === 'IbonAutoSelect' ? 'IbonTieBreak' : key === 'KktixAutoSelect' ? 'KktixTieBreak' : 'AutoClickTieBreak';
     assert.match(element('#tikitikiPriority').textContent, /優先：/);
     listener({ [orderKey]: { newValue: 'bottom' } }, 'local');
-    assert.equal(element('#tikitikiPriority').textContent, '優先：畫面順序（由下到上）');
+    assert.equal(element('#tikitikiPriority').textContent, key === 'IbonAutoSelect' ? '優先：加入順序' : '優先：畫面順序（由下到上）');
     listener({ [orderKey]: { newValue: 'remaining' } }, 'local');
-    assert.equal(element('#tikitikiPriority').textContent, key === 'KktixAutoSelect' ? '優先：票種上限最多' : '優先：剩餘票數最多');
+    assert.equal(element('#tikitikiPriority').textContent, key === 'IbonAutoSelect' ? '優先：加入順序' : key === 'KktixAutoSelect' ? '優先：票種上限最多' : '優先：剩餘票數最多');
     toggle.checked = true;
     await toggle.change();
     assert.equal(stored[key], true);

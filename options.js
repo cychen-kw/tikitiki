@@ -3,14 +3,15 @@ const optionDefaults = {
     HideSoldOutArea: true, ShowOnlyArea: false, AreaName: "", AutoClickArea: false,
     AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
-    KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false
+    KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
+    IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false
 };
 let optionsReady = false;
 let statusTimer;
 let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
-    if (key === 'AreaName' || key === 'AutoClickAreaName') {
+    if (['AreaName', 'AutoClickAreaName', 'IbonAreaName'].includes(key)) {
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
     }
@@ -50,7 +51,7 @@ async function restore_options() {
         const items = await chrome.storage.local.get({ ...optionDefaults, OptionsLastTab: 'tixcraft' });
         if (!tabChanged) {
             const sourceTab = typeof location === 'undefined' ? '' : location.hash.slice(1);
-            const explicitTab = ['tixcraft', 'kktix'].includes(sourceTab);
+            const explicitTab = ['tixcraft', 'kktix', 'ibon'].includes(sourceTab);
             selectTab(explicitTab ? sourceTab : items.OptionsLastTab);
             if (explicitTab) {
                 chrome.storage.local.set({ OptionsLastTab: sourceTab }).catch(error => {
@@ -235,7 +236,7 @@ function renderTags(boxId, inputId, hiddenId, tags) {
         let chip = document.createElement('span');
         chip.className = 'tag';
         chip.textContent = tag;
-        if (hiddenId === 'AutoClickAreaName') {
+        if (['AutoClickAreaName', 'IbonAreaName'].includes(hiddenId)) {
             chip.draggable = true;
             chip.tabIndex = 0;
             chip.title = '拖曳換順序，或按 Alt + 左右方向鍵移動';
@@ -309,6 +310,8 @@ setupTagInput('AreaNameBox', 'AreaNameInput', 'AreaName');
 setupTagInput('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
+setupTagInput('IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
+setupClearButton('IbonAreaNameClear', 'IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
 
 document.addEventListener('DOMContentLoaded', restore_options);
 document.querySelectorAll('main input, main button').forEach(input => { input.disabled = true; });
@@ -329,7 +332,7 @@ document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest()
 
 let tabChanged = false;
 function selectTab(tab) {
-    if (!['tixcraft', 'kktix'].includes(tab)) tab = 'tixcraft';
+    if (!['tixcraft', 'kktix', 'ibon'].includes(tab)) tab = 'tixcraft';
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });

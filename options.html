@@ -27,6 +27,7 @@
   <div class="tab-bar">
     <button type="button" class="tab-btn active" data-tab="tixcraft"><span class="tab-icon tab-icon-tixcraft">T</span> 拓元 tixCraft</button>
     <button type="button" class="tab-btn" data-tab="kktix"><span class="tab-icon tab-icon-kktix">K</span> KKTIX</button>
+    <button type="button" class="tab-btn" data-tab="ibon"><span class="tab-icon tab-icon-ibon">i</span> ibon</button>
   </div>
 
   <main class="sections" id="tab-tixcraft">
@@ -193,6 +194,28 @@
       <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」。</p>
     </section>
 
+  </main>
+  <main class="sections" id="tab-ibon" hidden>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
+      <label class="row"><input type="checkbox" id="IbonAutoSelect" class="option toggle-switch"><span>自動選區與選擇票數</span></label>
+      <label class="field-label" for="IbonAreaNameInput">區域關鍵字</label>
+      <div class="tag-input-row"><div class="tag-input" id="IbonAreaNameBox"><input type="text" id="IbonAreaNameInput" placeholder="輸入後按 Enter 新增"></div><button type="button" class="clear-btn" id="IbonAreaNameClear">清空</button></div>
+      <input type="hidden" id="IbonAreaName">
+      <p class="hint">依關鍵字加入順序優先，同關鍵字依畫面由上到下選一區。可拖曳排序；未填關鍵字不自動選區。使用電腦配位，略過已售完區域。</p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>購票張數</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="1">1 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="2" checked>2 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="3">3 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="4">4 張</label>
+      </div>
+      <label class="row"><input type="checkbox" id="IbonAllowSeparated" class="option toggle-switch"><span>接受不連位座位</span></label>
+      <p class="hint">指定張數必須在網站選項中存在；最大張數依網站選單為準。僅處理單一票種的數量頁，選完由你確認並按「下一步」。</p>
+    </section>
   </main>
 </div>
 

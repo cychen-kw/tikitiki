@@ -2,7 +2,7 @@
 
 ## 專案
 
-TikiTiki 是協助操作拓元 tixCraft 與 KKTIX 的 Chrome Manifest V3 擴充功能。使用原生 JavaScript、HTML、CSS，沒有建置步驟。對使用者的說明與介面文字使用繁體中文。
+TikiTiki 是協助操作拓元 tixCraft、KKTIX 與 ibon 的 Chrome Manifest V3 擴充功能。使用原生 JavaScript、HTML、CSS，沒有建置步驟。對使用者的說明與介面文字使用繁體中文。
 
 ## 程式位置
 
@@ -12,10 +12,11 @@ TikiTiki 是協助操作拓元 tixCraft 與 KKTIX 的 Chrome Manifest V3 擴充�
 - `js/tixcraft/area.js`：區域隱藏、關鍵字標示與自動點擊排序。
 - `js/tixcraft/ticket.js`：張數選擇與驗證碼輸入輔助。
 - `js/tixcraft/verify.js`：自訂購票驗證字串與銀行偵測。
-- `js/widget.js`：兩平台共用的時鐘、優先規則、開關及拖曳工具。
+- `js/widget.js`：三平台共用的時鐘、優先規則、開關及拖曳工具。
 - `js/tixcraft/login.js`：拓元登入狀態判斷，先於共用小工具載入；回傳 true、false 或 null（無法確認），不以缺少標記直接判定未登入。KKTIX 不判斷或顯示登入狀態。
 - `js/kktix/kktix.js`：票種範圍、排序、自動加票、資格碼與畫面更新。
 - `js/kktix/limits.js`：在 MAIN world 讀取網站每個票種的合法張數，提供給 content script。
+- `js/ibon/ibon.js`：ibon UTK02 電腦配位選區、單一票種張數及不連位設定；使用原生控制項事件，停在票數頁，不點下一步。尚未涵蓋其他 ibon 流程。
 - `tests/`：Node.js 內建 assert、vm 與 DOM mock 測試。
 - `README.md`、`CHANGELOG.md`：使用說明與版本變更。
 

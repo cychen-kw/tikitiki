@@ -15,11 +15,11 @@ function element(id) {
   return elements.get(id);
 }
 let changed;
-const tabs = ['tixcraft', 'kktix'].map(tab => ({
+const tabs = ['tixcraft', 'kktix', 'ibon'].map(tab => ({
   dataset: { tab }, classList: { toggle(name, value) { this.active = value; } },
   addEventListener(type, fn) { this[type] = fn; }
 }));
-const panels = ['tixcraft', 'kktix'].map(tab => ({ id: 'tab-' + tab }));
+const panels = ['tixcraft', 'kktix', 'ibon'].map(tab => ({ id: 'tab-' + tab }));
 let lastTab = 'kktix';
 const context = vm.createContext({
   console, setTimeout: () => 0, clearTimeout() {},
@@ -84,5 +84,12 @@ vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options
   context.location.hash = '';
   await handlers.DOMContentLoaded();
   assert.equal(panels[1].hidden, false, 'toolbar restores last opened tab');
+  await tabs[2].click();
+  assert.equal(lastTab, 'ibon');
+  assert.equal(panels[2].hidden, false);
+  handlers.change({ target: { id: 'IbonAllowSeparated', type: 'checkbox', checked: true } });
+  element('IbonAreaNameInput').keydown({ key: 'Enter', target: { value: 'B1' }, preventDefault() {} });
+  await vm.runInContext('saveQueue', context);
+  assert.equal(writes.at(-1).IbonAreaName, 'B1');
   console.log('Options autosave checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

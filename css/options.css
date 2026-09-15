@@ -15,6 +15,9 @@
   --kktix: #4c9c2e;
   --kktix-dark: #3a7a22;
   --kktix-tint: #e3f3d7;
+  --ibon: #e5006e;
+  --ibon-dark: #b30054;
+  --ibon-tint: #fde3ee;
 }
 
 * {
@@ -207,6 +210,9 @@ body {
 .tab-icon-kktix {
   background: var(--kktix);
 }
+.tab-icon-ibon { background: var(--ibon); }
+.tab-btn[data-tab="ibon"].active { color: var(--ibon); border-bottom-color: var(--ibon); }
+#tab-ibon { --accent: var(--ibon); --accent-dark: var(--ibon-dark); --accent-tint: var(--ibon-tint); }
 
 .tab-btn.active {
   color: var(--accent);
@@ -287,6 +293,12 @@ body {
   margin-bottom: 12px;
   font-size: 14px;
   line-height: 1.5;
+}
+
+.row:has(> .toggle-switch) {
+  align-items: center;
+  margin-top: 4px;
+  margin-bottom: 16px;
 }
 
 .row input[type="checkbox"] {
@@ -384,6 +396,7 @@ input[type="text"]:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 16px;
 }
 
 .radio-group-vertical {
