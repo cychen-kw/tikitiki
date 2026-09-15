@@ -353,6 +353,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
+const easterEggs = [
+    { text: '有票 +1', weight: 0.90 },
+    { text: 'I 💜 Mingyu', weight: 0.08 },
+    { text: 'CCY No.1', weight: 0.02 },
+];
+function pickEasterEgg() {
+    let roll = Math.random() * easterEggs.reduce((sum, e) => sum + e.weight, 0);
+    for (const egg of easterEggs) {
+        if (roll < egg.weight) return egg.text;
+        roll -= egg.weight;
+    }
+    return easterEggs[0].text;
+}
+
 document.getElementById('brandLogo').addEventListener('click', () => {
     let logo = document.getElementById('brandLogo');
     let wrap = document.getElementById('brandLogoWrap');
@@ -384,7 +398,11 @@ document.getElementById('brandLogo').addEventListener('click', () => {
 
     let bubble = document.createElement('span');
     bubble.className = 'tiki-bubble';
-    bubble.textContent = '有票 +1';
+    bubble.textContent = pickEasterEgg();
+    let drift = () => (Math.random() * 36 - 18) + 'px';
+    bubble.style.setProperty('--bx1', (10 + Math.random() * 14) + 'px');
+    for (const name of ['--bx2', '--bx3', '--bx4', '--bx5']) bubble.style.setProperty(name, drift());
+    bubble.style.setProperty('--float-duration', (2.4 + Math.random() * 0.6) + 's');
     wrap.appendChild(bubble);
     bubble.addEventListener('animationend', () => bubble.remove());
 });
