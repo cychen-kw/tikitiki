@@ -16,7 +16,7 @@ TikiTiki 是協助操作拓元 tixCraft、KKTIX 與 ibon 的 Chrome Manifest V3 
 - `js/tixcraft/login.js`：拓元登入狀態判斷，先於共用小工具載入；回傳 true、false 或 null（無法確認），不以缺少標記直接判定未登入。KKTIX 不判斷或顯示登入狀態。
 - `js/kktix/kktix.js`：票種範圍、排序、自動加票、資格碼與畫面更新。
 - `js/kktix/limits.js`：在 MAIN world 讀取網站每個票種的合法張數，提供給 content script。
-- `js/ibon/ibon.js`：ibon UTK02 電腦配位選區、單一票種張數及不連位設定；使用原生控制項事件，停在票數頁，不點下一步。尚未涵蓋其他 ibon 流程。
+- `js/ibon/ibon.js`：ibon UTK02 電腦配位選區、單一票種張數及不連位設定；使用原生控制項事件，停在票數頁，不點下一步。尚未涵蓋其他 ibon 流程。`IbonAutoSelect` 只控制自動選區，張數與不連位選擇獨立於此開關，永遠依購票張數設定執行。
 - `tests/`：Node.js 內建 assert、vm 與 DOM mock 測試。
 - `README.md`、`CHANGELOG.md`：使用說明與版本變更。
 

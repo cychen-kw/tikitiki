@@ -5,8 +5,9 @@ let ibonAreaClicked = false;
 let ibonHandled = new WeakSet();
 
 function updateIbon() {
-  if (!ibonSettings?.IbonAutoSelect) return;
+  if (!ibonSettings) return;
   if (location.pathname.endsWith('/UTK0201_000.aspx')) {
+    if (!ibonSettings.IbonAutoSelect) return;
     if (ibonAreaClicked) return;
     const keywords = String(ibonSettings.IbonAreaName).split(',').map(word => word.trim()).filter(Boolean);
     if (!keywords.length) return;
