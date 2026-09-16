@@ -1,6 +1,6 @@
 const optionDefaults = {
     ProgramOnly: false, TicketNumber: 0, HideBadArea: false, HideDisabledArea: false,
-    HideSoldOutArea: true, ShowOnlyArea: false, AreaName: "", AutoClickArea: false,
+    HideSoldOutArea: true, HiddenAreaName: "", AreaName: "", AutoClickArea: false,
     AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
@@ -11,7 +11,7 @@ let statusTimer;
 let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
-    if (['AreaName', 'AutoClickAreaName', 'IbonAreaName'].includes(key)) {
+    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName'].includes(key)) {
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
     }
@@ -307,6 +307,8 @@ function setupClearButton(clearBtnId, boxId, inputId, hiddenId) {
 }
 
 setupTagInput('AreaNameBox', 'AreaNameInput', 'AreaName');
+setupTagInput('HiddenAreaNameBox', 'HiddenAreaNameInput', 'HiddenAreaName');
+setupClearButton('HiddenAreaNameClear', 'HiddenAreaNameBox', 'HiddenAreaNameInput', 'HiddenAreaName');
 setupTagInput('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');

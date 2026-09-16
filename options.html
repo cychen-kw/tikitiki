@@ -50,17 +50,24 @@
         <span>隱藏已售完的區域</span>
       </label>
 
-      <label class="row">
-        <input type="checkbox" id="ShowOnlyArea" class='option toggle-switch' />
-        <span>僅顯示這些區域，其餘隱藏</span>
-      </label>
-      <div class="tag-input-row indent">
+      <label class="field-label" for="HiddenAreaNameInput">自訂隱藏關鍵字</label>
+      <div class="tag-input-row">
+        <div class="tag-input" id="HiddenAreaNameBox">
+          <input type="text" id="HiddenAreaNameInput" placeholder="輸入關鍵字後按 Enter 新增" aria-describedby="HiddenAreaNameHint">
+        </div>
+        <button type="button" class="clear-btn" id="HiddenAreaNameClear">清空</button>
+      </div>
+      <p class="hint" id="HiddenAreaNameHint">包含任一關鍵字的區域會隱藏，也不會自動點擊。清空則停用此規則；變更後自動儲存，重新整理選區頁生效。</p>
+      <input type="hidden" id="HiddenAreaName">
+
+      <label class="field-label" for="AreaNameInput">僅顯示這些區域，其餘隱藏</label>
+      <div class="tag-input-row">
         <div class="tag-input" id="AreaNameBox">
-          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增" aria-describedby="AreaNameHint">
         </div>
         <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
       </div>
-      <p class="hint indent">關鍵字按 Enter 新增後自動儲存；啟用「僅顯示」且清空時會隱藏所有區域。</p>
+      <p class="hint" id="AreaNameHint">關鍵字按 Enter 新增後自動儲存；有關鍵字時僅顯示符合任一關鍵字的區域，清空則不限制。其他隱藏規則仍適用，重新整理選區頁生效。</p>
       <input type="hidden" id="AreaName">
     </section>
 

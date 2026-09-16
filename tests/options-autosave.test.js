@@ -46,6 +46,17 @@ vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options
   element('AutoClickArea').type = 'checkbox';
   changed({ AutoClickArea: { newValue: false } }, 'local');
   assert.equal(element('AutoClickArea').checked, false);
+  element('HiddenAreaNameInput').keydown({ key: 'Enter', target: { value: '視線不良' }, preventDefault() {} });
+  await vm.runInContext('saveQueue', context);
+  assert.equal(JSON.stringify(writes.at(-1)), JSON.stringify({ HiddenAreaName: '視線不良' }));
+  changed({ HiddenAreaName: { newValue: '紅區,黃區' } }, 'local');
+  assert.equal(element('HiddenAreaName').value, '紅區,黃區');
+  element('HiddenAreaNameBox').children[0].children[0].click();
+  await vm.runInContext('saveQueue', context);
+  assert.equal(writes.at(-1).HiddenAreaName, '黃區');
+  element('HiddenAreaNameClear').click();
+  await vm.runInContext('saveQueue', context);
+  assert.equal(writes.at(-1).HiddenAreaName, '');
   element('AutoClickAreaNameInput').keydown({ key: 'Enter', target: { value: 'VIP' }, preventDefault() {} });
   await vm.runInContext('saveQueue', context);
   assert.equal(writes.at(-1).AutoClickAreaName, 'VIP');
