@@ -1,16 +1,17 @@
 const optionDefaults = {
     ProgramOnly: false, TicketNumber: 0, HideBadArea: false, HideDisabledArea: false,
-    HideSoldOutArea: true, ShowOnlyArea: false, AreaName: "", AutoClickArea: false,
+    HideSoldOutArea: true, HiddenAreaName: "", AreaName: "", AutoClickArea: false,
     AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
-    KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false
+    KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
+    IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false
 };
 let optionsReady = false;
 let statusTimer;
 let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
-    if (key === 'AreaName' || key === 'AutoClickAreaName') {
+    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName'].includes(key)) {
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
     }
@@ -50,7 +51,7 @@ async function restore_options() {
         const items = await chrome.storage.local.get({ ...optionDefaults, OptionsLastTab: 'tixcraft' });
         if (!tabChanged) {
             const sourceTab = typeof location === 'undefined' ? '' : location.hash.slice(1);
-            const explicitTab = ['tixcraft', 'kktix'].includes(sourceTab);
+            const explicitTab = ['tixcraft', 'kktix', 'ibon'].includes(sourceTab);
             selectTab(explicitTab ? sourceTab : items.OptionsLastTab);
             if (explicitTab) {
                 chrome.storage.local.set({ OptionsLastTab: sourceTab }).catch(error => {
@@ -235,7 +236,7 @@ function renderTags(boxId, inputId, hiddenId, tags) {
         let chip = document.createElement('span');
         chip.className = 'tag';
         chip.textContent = tag;
-        if (hiddenId === 'AutoClickAreaName') {
+        if (['AutoClickAreaName', 'IbonAreaName'].includes(hiddenId)) {
             chip.draggable = true;
             chip.tabIndex = 0;
             chip.title = '拖曳換順序，或按 Alt + 左右方向鍵移動';
@@ -306,9 +307,13 @@ function setupClearButton(clearBtnId, boxId, inputId, hiddenId) {
 }
 
 setupTagInput('AreaNameBox', 'AreaNameInput', 'AreaName');
+setupTagInput('HiddenAreaNameBox', 'HiddenAreaNameInput', 'HiddenAreaName');
+setupClearButton('HiddenAreaNameClear', 'HiddenAreaNameBox', 'HiddenAreaNameInput', 'HiddenAreaName');
 setupTagInput('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
+setupTagInput('IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
+setupClearButton('IbonAreaNameClear', 'IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
 
 document.addEventListener('DOMContentLoaded', restore_options);
 document.querySelectorAll('main input, main button').forEach(input => { input.disabled = true; });
@@ -329,7 +334,7 @@ document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest()
 
 let tabChanged = false;
 function selectTab(tab) {
-    if (!['tixcraft', 'kktix'].includes(tab)) tab = 'tixcraft';
+    if (!['tixcraft', 'kktix', 'ibon'].includes(tab)) tab = 'tixcraft';
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -349,6 +354,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         }
     });
 });
+
+const easterEggs = [
+    { text: '有票 +1', weight: 0.90 },
+    { text: 'I 💜 Mingyu', weight: 0.08 },
+    { text: 'CCY No.1', weight: 0.02 },
+];
+function pickEasterEgg() {
+    let roll = Math.random() * easterEggs.reduce((sum, e) => sum + e.weight, 0);
+    for (const egg of easterEggs) {
+        if (roll < egg.weight) return egg.text;
+        roll -= egg.weight;
+    }
+    return easterEggs[0].text;
+}
 
 document.getElementById('brandLogo').addEventListener('click', () => {
     let logo = document.getElementById('brandLogo');
@@ -381,7 +400,11 @@ document.getElementById('brandLogo').addEventListener('click', () => {
 
     let bubble = document.createElement('span');
     bubble.className = 'tiki-bubble';
-    bubble.textContent = '有票 +1';
+    bubble.textContent = pickEasterEgg();
+    let drift = () => (Math.random() * 36 - 18) + 'px';
+    bubble.style.setProperty('--bx1', (10 + Math.random() * 14) + 'px');
+    for (const name of ['--bx2', '--bx3', '--bx4', '--bx5']) bubble.style.setProperty(name, drift());
+    bubble.style.setProperty('--float-duration', (2.4 + Math.random() * 0.6) + 's');
     wrap.appendChild(bubble);
     bubble.addEventListener('animationend', () => bubble.remove());
 });

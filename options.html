@@ -27,6 +27,7 @@
   <div class="tab-bar">
     <button type="button" class="tab-btn active" data-tab="tixcraft"><span class="tab-icon tab-icon-tixcraft">T</span> 拓元 tixCraft</button>
     <button type="button" class="tab-btn" data-tab="kktix"><span class="tab-icon tab-icon-kktix">K</span> KKTIX</button>
+    <button type="button" class="tab-btn" data-tab="ibon"><span class="tab-icon tab-icon-ibon">i</span> ibon</button>
   </div>
 
   <main class="sections" id="tab-tixcraft">
@@ -49,17 +50,24 @@
         <span>隱藏已售完的區域</span>
       </label>
 
-      <label class="row">
-        <input type="checkbox" id="ShowOnlyArea" class='option toggle-switch' />
-        <span>僅顯示這些區域，其餘隱藏</span>
-      </label>
-      <div class="tag-input-row indent">
+      <label class="field-label" for="HiddenAreaNameInput">自訂隱藏關鍵字</label>
+      <div class="tag-input-row">
+        <div class="tag-input" id="HiddenAreaNameBox">
+          <input type="text" id="HiddenAreaNameInput" placeholder="輸入關鍵字後按 Enter 新增" aria-describedby="HiddenAreaNameHint">
+        </div>
+        <button type="button" class="clear-btn" id="HiddenAreaNameClear">清空</button>
+      </div>
+      <p class="hint" id="HiddenAreaNameHint">包含任一關鍵字的區域會隱藏，也不會自動點擊。清空則停用此規則；變更後自動儲存，重新整理選區頁生效。</p>
+      <input type="hidden" id="HiddenAreaName">
+
+      <label class="field-label" for="AreaNameInput">僅顯示這些區域，其餘隱藏</label>
+      <div class="tag-input-row">
         <div class="tag-input" id="AreaNameBox">
-          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增">
+          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增" aria-describedby="AreaNameHint">
         </div>
         <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
       </div>
-      <p class="hint indent">關鍵字按 Enter 新增後自動儲存；啟用「僅顯示」且清空時會隱藏所有區域。</p>
+      <p class="hint" id="AreaNameHint">關鍵字按 Enter 新增後自動儲存；有關鍵字時僅顯示符合任一關鍵字的區域，清空則不限制。其他隱藏規則仍適用，重新整理選區頁生效。</p>
       <input type="hidden" id="AreaName">
     </section>
 
@@ -194,6 +202,30 @@
     </section>
 
   </main>
+  <main class="sections" id="tab-ibon" hidden>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
+      <label class="row"><input type="checkbox" id="IbonAutoSelect" class="option toggle-switch"><span>自動選區</span></label>
+      <label class="field-label" for="IbonAreaNameInput">區域關鍵字</label>
+      <div class="tag-input-row"><div class="tag-input" id="IbonAreaNameBox"><input type="text" id="IbonAreaNameInput" placeholder="輸入後按 Enter 新增"></div><button type="button" class="clear-btn" id="IbonAreaNameClear">清空</button></div>
+      <input type="hidden" id="IbonAreaName">
+      <p class="hint">依關鍵字加入順序優先，同關鍵字依畫面由上到下選一區。可拖曳排序；未填關鍵字不自動選區。使用電腦配位，略過已售完或未開賣區域。</p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>購票張數</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="1">1 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="2" checked>2 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="3">3 張</label>
+        <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="4">4 張</label>
+      </div>
+      <label class="row"><input type="checkbox" id="IbonAllowSeparated" class="option toggle-switch"><span>接受不連位座位</span></label>
+      <p class="hint">指定張數必須在網站選項中存在；最大張數依網站選單為準。僅處理單一票種的數量頁，選完由你確認並按「下一步」。</p>
+    </section>
+  </main>
+
+  <footer class="page-footer">© 2026 kag+</footer>
 </div>
 
 <script src="options.js"></script>

@@ -1,7 +1,8 @@
 // Shared floating clock and platform-specific auto-click toggle.
 function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
   const kktix = settingKey === 'KktixAutoSelect';
-  const orderKey = kktix ? 'KktixTieBreak' : 'AutoClickTieBreak';
+  const ibon = settingKey === 'IbonAutoSelect';
+  const orderKey = ibon ? 'IbonTieBreak' : kktix ? 'KktixTieBreak' : 'AutoClickTieBreak';
   const defaultOrder = kktix ? 'top' : 'keyword';
   const orderNames = {
     top: '畫面順序（由上到下）', bottom: '畫面順序（由下到上）',
@@ -96,7 +97,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     const loginWarning = widget.querySelector('#tikitikiLoginWarning');
     function tick() {
       clock.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-      if (kktix) return;
+      if (kktix || ibon) return;
       const state = typeof getTikitikiLoginState === 'function' ? getTikitikiLoginState() : null;
       const message = state === false ? '⚠ 尚未登入，請先登入' : state === null ? '登入狀態無法確認' : '';
       if (loginWarning.textContent !== message) {
@@ -113,7 +114,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     let minimizeBtn = widget.querySelector("#tikitikiMinimize");
     const priority = widget.querySelector('#tikitikiPriority');
     function showPriority(value) {
-      priority.textContent = '優先：' + (orderNames[value] || orderNames[defaultOrder]);
+      priority.textContent = '優先：' + (ibon ? '加入順序' : (orderNames[value] || orderNames[defaultOrder]));
     }
     showPriority(items[orderKey]);
 
@@ -123,7 +124,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     let settingsBtn = widget.querySelector("#tikitikiSettings");
     settingsBtn.addEventListener("mouseenter", () => settingsBtn.style.background = "#f2f2f2");
     settingsBtn.addEventListener("mouseleave", () => settingsBtn.style.background = "transparent");
-    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: kktix ? 'kktix' : 'tixcraft' }));
+    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: ibon ? 'ibon' : kktix ? 'kktix' : 'tixcraft' }));
 
     let minimized = false;
     minimizeBtn.addEventListener("click", () => {

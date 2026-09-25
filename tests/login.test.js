@@ -25,7 +25,7 @@ const path = require('node:path');
 }
 const manifest = require('../manifest.json');
 for (const entry of manifest.content_scripts.filter(entry => entry.js.includes('js/widget.js'))) {
-  if (entry.js.includes('js/kktix/kktix.js')) assert.ok(!entry.js.some(script => script.endsWith('/login.js')));
+  if (!entry.matches.some(url => url.startsWith('https://tixcraft.com/'))) assert.ok(!entry.js.some(script => script.endsWith('/login.js')));
   else assert.equal(entry.js[0], 'js/tixcraft/login.js');
 }
 console.log('Login checks passed');

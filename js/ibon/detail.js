@@ -1,0 +1,1 @@
+addClockWidget(undefined, 'IbonAutoSelect');

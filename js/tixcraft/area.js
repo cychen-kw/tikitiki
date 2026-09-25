@@ -22,7 +22,7 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
   let candidates = [];
 
   document.querySelectorAll("ul.area-list > li").forEach((li, domIndex) => {
-    if (li.offsetParent === null) return; // hidden by HideBadArea/HideDisabledArea/ShowOnlyArea
+    if (li.offsetParent === null) return; // skip areas hidden by display rules
 
     let a = li.querySelector("a");
     if (!a) return; // sold out / unavailable, no link to click
@@ -76,7 +76,7 @@ chrome.storage.local.get({
   HideBadArea: false,
   HideDisabledArea: false,
   HideSoldOutArea: true,
-  ShowOnlyArea: false,
+  HiddenAreaName: "",
   AreaName: "",
   AutoClickArea: false,
   AutoClickAreaName: "",
@@ -88,8 +88,8 @@ chrome.storage.local.get({
   // TicketNumber 0 means "max available", so any ticket at all counts as enough
   let neededTickets = items.TicketNumber > 0 ? parseInt(items.TicketNumber, 10) : 1;
 
-  if (items.ShowOnlyArea && items.AreaName.length) {
-    let AreaNameArray = items.AreaName.split(',');
+  const AreaNameArray = items.AreaName.split(',').map(keyword => keyword.trim()).filter(Boolean);
+  if (AreaNameArray.length) {
     document.querySelectorAll("ul.area-list > li").forEach(li => {
       if (!AreaNameArray.some(el => li.textContent.includes(el))) {
         li.style.display = "none";
@@ -118,6 +118,11 @@ chrome.storage.local.get({
       if (!li.querySelector("a")) li.style.display = "none";
     });
   }
+
+  const hiddenKeywords = items.HiddenAreaName.split(',').map(keyword => keyword.trim()).filter(Boolean);
+  document.querySelectorAll('ul.area-list > li').forEach(li => {
+    if (hiddenKeywords.some(keyword => li.textContent.includes(keyword))) li.style.display = 'none';
+  });
 
   if (items.AutoClickArea) {
     runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient);
