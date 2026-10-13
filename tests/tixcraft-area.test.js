@@ -45,7 +45,7 @@ for (const keywords of [' 紅區 , , 遮擋 ', '', ',  ,']) {
   const expected = keywords.trim().startsWith('紅區') ? areas[3] : areas[0];
   assert.deepEqual(clicked, [expected.textContent]);
   update({ AutoClickAreaName: { newValue: 'VIP' } }, 'local');
-  trigger();
+  update({ AutoClickArea: { newValue: true } }, 'local');
   assert.deepEqual(clicked, [expected.textContent, expected.textContent]);
   assert.equal(areas[2].style.display, 'none');
   if (expected === areas[3]) assert.ok(areas.slice(0, 3).every(row => row.style.display === 'none'));
@@ -67,4 +67,29 @@ for (const legacySwitch of [false, true]) {
     });
     assert.deepEqual(areas.map(row => row.style.display !== 'none'), visible);
   }
+}
+
+// Numeric keyword "800" must match only the exact price, not a substring of "2800" or "2,800",
+// and only when AreaKeywordPriceMatch is on (default).
+for (const [priceMatch, visible] of [[true, [true, false, false]], [false, [true, true, true]]]) {
+  const areas = ['VIP 800', '搖滾 2800', '搖滾 2,800'].map(textContent => ({
+    textContent, style: {}, querySelector: () => ({}), classList: { toggle() {} }
+  }));
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname, '../js/tixcraft/area.js'), 'utf8'), {
+    document: { createElement: () => ({}), head: { appendChild() {} }, querySelectorAll: () => areas },
+    addClockWidget() {},
+    chrome: { storage: {
+      local: { get(defaults, callback) { callback({ ...defaults, AreaName: '800', AreaKeywordPriceMatch: priceMatch, HideDisabledArea: true }); } },
+      onChanged: { addListener() {} }
+    } }
+  });
+  assert.deepEqual(areas.map(row => row.style.display !== 'none'), visible, `priceMatch=${priceMatch}`);
+}
+console.log('tixCraft area price-keyword checks passed');
+
+const priceContext = vm.createContext({ document: { createElement: () => ({}), head: { appendChild() {} } }, chrome: { storage: { local: { get() {} }, onChanged: { addListener() {} } } } });
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../js/tixcraft/area.js'), 'utf8'), priceContext);
+for (const text of ['800區 2800 剩餘 800', '800區 2,800 熱賣中', '800區 2800 800 seat(s) remaining']) {
+  assert.equal(priceContext.keywordMatches(text, '800', true), false);
+  assert.equal(priceContext.keywordMatches(text, '2800', true), true);
 }

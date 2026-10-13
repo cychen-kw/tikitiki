@@ -33,13 +33,18 @@ function ticket(id, limit = 4, quantity = 0) {
 
 async function page(rows, settings = {}, codeInputs = []) {
   const key = 'KktixTicketScope:event-a';
-  let onChanged;
+  let onChanged, clickHandler;
+  const statusElements = [];
+  const terms = { checked: false, clicks: 0, click() { this.checked = true; this.clicks++; } };
   const stored = { KktixAutoSelect: true, KktixTicketNumber: '2', [key]: rows.map(r => r.id), ...settings };
   const context = vm.createContext({
     addClockWidget(callback, key) { assert.equal(key, 'KktixAutoSelect'); },
     console, location: { pathname: '/events/event-a/registrations/new' },
     Date, Event, setInterval() {},
     document: {
+      addEventListener(type, handler) { clickHandler = handler; },
+      body: { prepend(el) { statusElements.push(el); } },
+      getElementById: () => terms,
       querySelector: () => ({ textContent: '測試節目' }),
       querySelectorAll: selector => selector === '.ticket-unit input.member-code' ? codeInputs : rows,
       createElement: () => ({ style: {}, attributes: {}, dataset: {},
@@ -61,7 +66,7 @@ async function page(rows, settings = {}, codeInputs = []) {
   });
   vm.runInContext(source, context);
   await Promise.resolve();
-  return { context, stored, tick: () => context.updateKktixTickets() };
+  return { context, stored, terms, status: statusElements[0], tick: () => context.updateKktixTickets() };
 }
 
 (async () => {
@@ -79,6 +84,23 @@ async function page(rows, settings = {}, codeInputs = []) {
     await hidden.context.chrome.storage.local.set({ KktixHideDisabledArea: false });
     assert.equal(disabled.closest().style.display, 'block', 'restore original display after disabling');
   }
+  const selectedHidden = ticket('輪椅席', 4, 1);
+  const selectedPage = await page([selectedHidden], { KktixHideDisabledArea: true });
+  assert.equal(selectedHidden.closest().style.display, '');
+  assert.match(selectedPage.status.textContent, /取消後才隱藏/);
+  assert.equal(selectedHidden.plus.clicks, 0);
+  selectedHidden.input.value = '0';
+  selectedPage.tick();
+  assert.equal(selectedHidden.closest().style.display, 'none');
+  const manual = ticket('manual', 4, 4);
+  const preserve = await page([manual], { KktixAutoSelect: false });
+  await preserve.context.chrome.storage.local.set({ KktixTicketNumber: '2', KktixAutoSelect: true });
+  assert.equal(manual.input.value, '4');
+  assert.match(preserve.status.textContent, /保留目前選票/);
+  manual.input.value = '0'; manual.plus.disabled = false;
+  preserve.tick(); preserve.tick();
+  assert.equal(manual.input.value, '2');
+  assert.equal(preserve.status.hidden, true);
   const lateDisabled = [];
   const hiddenPage = await page(lateDisabled, { KktixAutoSelect: false, KktixHideDisabledArea: true });
   lateDisabled.push(ticket('輪椅陪同席'));
@@ -252,7 +274,7 @@ async function page(rows, settings = {}, codeInputs = []) {
     } }
   });
   vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options.js'), 'utf8'), options);
-  await options.renderKktixScope();
+  await options.renderTicketScope('Kktix');
   const list = getElement('KktixScopeList');
   assert.equal(list.children.length, 5);
   assert.equal(list.children[0].children[0].children[0].textContent, '<b>節目</b>（2 個票種）', 'render group names as text');

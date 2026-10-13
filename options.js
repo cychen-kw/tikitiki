@@ -1,17 +1,18 @@
 const optionDefaults = {
     ProgramOnly: false, TicketNumber: 0, HideBadArea: false, HideDisabledArea: false,
-    HideSoldOutArea: true, HiddenAreaName: "", AreaName: "", AutoClickArea: false,
+    HideSoldOutArea: true, HiddenAreaName: "", AreaName: "", AreaKeywordPriceMatch: true, AutoClickArea: false,
     AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
-    IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false
+    IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false,
+    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2'
 };
 let optionsReady = false;
 let statusTimer;
 let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
-    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName'].includes(key)) {
+    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName', 'TicketplusPrice'].includes(key)) {
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
     }
@@ -46,12 +47,12 @@ function saveOption(key, value) {
 }
 
 async function restore_options() {
-    renderKktixScope();
+    scopePlatforms.forEach(renderTicketScope);
     try {
         const items = await chrome.storage.local.get({ ...optionDefaults, OptionsLastTab: 'tixcraft' });
         if (!tabChanged) {
             const sourceTab = typeof location === 'undefined' ? '' : location.hash.slice(1);
-            const explicitTab = ['tixcraft', 'kktix', 'ibon'].includes(sourceTab);
+            const explicitTab = ['tixcraft', 'kktix', 'ibon', 'ticketplus'].includes(sourceTab);
             selectTab(explicitTab ? sourceTab : items.OptionsLastTab);
             if (explicitTab) {
                 chrome.storage.local.set({ OptionsLastTab: sourceTab }).catch(error => {
@@ -63,7 +64,7 @@ async function restore_options() {
         for (const key of Object.keys(optionDefaults)) applyOption(key, items[key]);
         optionsReady = true;
         document.querySelectorAll('main input, main button').forEach(input => {
-            if (input.id !== 'KktixScopeClear') input.disabled = false;
+            if (!input.id.endsWith('ScopeClear')) input.disabled = false;
         });
     } catch (error) {
         document.getElementById('status').textContent = '讀取設定失敗，請重新開啟設定頁。';
@@ -71,19 +72,22 @@ async function restore_options() {
     }
 }
 
-async function renderKktixScope() {
-    const status = document.getElementById('KktixScopeStatus');
+// KKTIX and ticketplus share the added-ticket list; ticketplus saves its order page URL with each ticket.
+const scopePlatforms = ['Kktix', 'Ticketplus'];
+async function renderTicketScope(platform) {
+    const status = document.getElementById(platform + 'ScopeStatus');
     try {
         const items = await chrome.storage.local.get(null);
-        const body = document.getElementById('KktixScopeList');
+        const body = document.getElementById(platform + 'ScopeList');
         body.replaceChildren();
         let count = 0;
         for (const [key, ids] of Object.entries(items)) {
-            if (!key.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
+            if (!key.startsWith(platform + 'TicketScope:') || !Array.isArray(ids)) continue;
             const tickets = ids.filter(id => typeof id === 'string');
             if (!tickets.length) continue;
-            const eventId = key.slice('KktixTicketScope:'.length);
-            const eventName = tickets.map(id => items['KktixTicketInfo:' + eventId + ':' + id]?.eventName).find(Boolean) || eventId;
+            const eventId = key.slice((platform + 'TicketScope:').length);
+            const infos = tickets.map(id => items[platform + 'TicketInfo:' + eventId + ':' + id]);
+            const eventName = infos.map(info => info?.eventName).find(Boolean) || eventId;
             const group = document.createElement('tr');
             group.className = 'scope-group';
             const heading = document.createElement('th');
@@ -91,7 +95,8 @@ async function renderKktixScope() {
             heading.setAttribute('scope', 'rowgroup');
             const title = document.createElement('a');
             title.textContent = `${eventName}（${tickets.length} 個票種）`;
-            title.href = 'https://kktix.com/events/' + encodeURIComponent(eventId) + '/registrations/new';
+            title.href = platform === 'Kktix' ? 'https://kktix.com/events/' + encodeURIComponent(eventId) + '/registrations/new' :
+                infos.map(info => info?.url).find(url => /^https:\/\/ticketplus\.com\.tw\//.test(url || '')) || 'https://ticketplus.com.tw/';
             title.target = '_blank';
             title.rel = 'noopener noreferrer';
             heading.appendChild(title);
@@ -100,13 +105,13 @@ async function renderKktixScope() {
             clear.className = 'clear-btn';
             clear.textContent = '清空此活動';
             clear.setAttribute('aria-label', '清空 ' + eventName);
-            clear.addEventListener('click', () => deleteKktixScope(key));
+            clear.addEventListener('click', () => deleteTicketScope(platform, key));
             heading.appendChild(clear);
             group.appendChild(heading);
             body.appendChild(group);
             let draggedId = null;
             for (const [index, id] of tickets.entries()) {
-                const info = items[key.replace('KktixTicketScope:', 'KktixTicketInfo:') + ':' + id];
+                const info = infos[index];
                 const row = document.createElement('tr');
                 for (const value of [index + 1]) {
                     const cell = document.createElement('td');
@@ -138,20 +143,20 @@ async function renderKktixScope() {
                     event.preventDefault();
                     const source = draggedId;
                     draggedId = null;
-                    return moveKktixScope(key, source, id);
+                    return moveTicketScope(platform, key, source, id);
                 });
                 handle.addEventListener('keydown', event => {
                     if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
                     event.preventDefault();
                     const target = tickets[index + (event.key === 'ArrowUp' ? -1 : 1)];
-                    if (target) return moveKktixScope(key, id, target);
+                    if (target) return moveTicketScope(platform, key, id, target);
                 });
                 const nameCell = document.createElement('td');
                 nameCell.textContent = info?.ticketName || '重新開啟報名頁後補上名稱';
                 const ticketId = document.createElement('small');
                 ticketId.className = 'scope-ticket-id';
                 ticketId.textContent = id;
-                nameCell.appendChild(ticketId);
+                if (id !== info?.ticketName) nameCell.appendChild(ticketId);
                 row.appendChild(nameCell);
                 const cell = document.createElement('td');
                 const remove = document.createElement('button');
@@ -159,15 +164,15 @@ async function renderKktixScope() {
                 remove.className = 'clear-btn';
                 remove.textContent = '×';
                 remove.title = '移除票種';
-                remove.setAttribute('aria-label', `移除 ${info?.eventName || key.slice('KktixTicketScope:'.length)} ${info?.ticketName || id}`);
-                remove.addEventListener('click', () => deleteKktixScope(key, id));
+                remove.setAttribute('aria-label', `移除 ${info?.eventName || eventId} ${info?.ticketName || id}`);
+                remove.addEventListener('click', () => deleteTicketScope(platform, key, id));
                 cell.appendChild(remove);
                 row.appendChild(cell);
                 body.appendChild(row);
                 count++;
             }
         }
-        document.getElementById('KktixScopeClear').disabled = count === 0;
+        document.getElementById(platform + 'ScopeClear').disabled = count === 0;
         status.textContent = count ? `已加入 ${count} 個票種` : '尚未加入任何票種';
     } catch (error) {
         status.textContent = '讀取清單失敗，請重新開啟設定頁。';
@@ -175,23 +180,23 @@ async function renderKktixScope() {
     }
 }
 
-async function deleteKktixScope(key, id) {
+async function deleteTicketScope(platform, key, id) {
     try {
         const items = await chrome.storage.local.get(null);
         const updates = {};
         for (const [scopeKey, ids] of Object.entries(items)) {
-            if (!scopeKey.startsWith('KktixTicketScope:') || !Array.isArray(ids)) continue;
+            if (!scopeKey.startsWith(platform + 'TicketScope:') || !Array.isArray(ids)) continue;
             if (!key || key === scopeKey) updates[scopeKey] = key && id !== undefined ? ids.filter(value => value !== id) : [];
         }
         await chrome.storage.local.set(updates);
-        await renderKktixScope();
+        await renderTicketScope(platform);
     } catch (error) {
-        document.getElementById('KktixScopeStatus').textContent = '移除失敗，請重試。';
+        document.getElementById(platform + 'ScopeStatus').textContent = '移除失敗，請重試。';
         console.error(error);
     }
 }
 
-async function moveKktixScope(key, id, targetId) {
+async function moveTicketScope(platform, key, id, targetId) {
     try {
         const items = await chrome.storage.local.get(key);
         const ids = items[key];
@@ -200,21 +205,25 @@ async function moveKktixScope(key, id, targetId) {
         if (from < 0 || to < 0 || from === to) return;
         ids.splice(to, 0, ids.splice(from, 1)[0]);
         await chrome.storage.local.set({ [key]: ids });
-        await renderKktixScope();
+        await renderTicketScope(platform);
     } catch (error) {
-        document.getElementById('KktixScopeStatus').textContent = '排序儲存失敗，請重試。';
+        document.getElementById(platform + 'ScopeStatus').textContent = '排序儲存失敗，請重試。';
         console.error(error);
     }
 }
 
-document.getElementById('KktixScopeClear').addEventListener('click', () => deleteKktixScope());
+for (const platform of scopePlatforms) {
+    document.getElementById(platform + 'ScopeClear').addEventListener('click', () => deleteTicketScope(platform));
+}
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && optionsReady) {
         for (const [key, change] of Object.entries(changes)) {
             if (Object.hasOwn(optionDefaults, key)) applyOption(key, change.newValue ?? optionDefaults[key]);
         }
     }
-    if (area === 'local' && Object.keys(changes).some(key => /^KktixTicket(Scope|Info):/.test(key))) renderKktixScope();
+    for (const platform of scopePlatforms) {
+        if (area === 'local' && Object.keys(changes).some(key => key.startsWith(platform + 'TicketScope:') || key.startsWith(platform + 'TicketInfo:'))) renderTicketScope(platform);
+    }
 });
 
 // generic keyword tag input: chips are the display, the hidden input stays
@@ -236,10 +245,10 @@ function renderTags(boxId, inputId, hiddenId, tags) {
         let chip = document.createElement('span');
         chip.className = 'tag';
         chip.textContent = tag;
-        if (['AutoClickAreaName', 'IbonAreaName'].includes(hiddenId)) {
+        if (['AutoClickAreaName', 'IbonAreaName', 'TicketplusPrice'].includes(hiddenId)) {
             chip.draggable = true;
             chip.tabIndex = 0;
-            chip.title = '拖曳換順序，或按 Alt + 左右方向鍵移動';
+            chip.title = '拖曳換順序';
             chip.addEventListener('dragstart', event => {
                 draggedIndex = index;
                 event.dataTransfer.effectAllowed = 'move';
@@ -257,11 +266,6 @@ function renderTags(boxId, inputId, hiddenId, tags) {
                 draggedIndex = null;
             });
             chip.addEventListener('dragend', () => { draggedIndex = null; });
-            chip.addEventListener('keydown', event => {
-                if (event.target !== chip || !event.altKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-                event.preventDefault();
-                moveTag(index, index + (event.key === 'ArrowLeft' ? -1 : 1));
-            });
         }
 
         let remove = document.createElement('button');
@@ -283,19 +287,27 @@ function renderTags(boxId, inputId, hiddenId, tags) {
 }
 
 function setupTagInput(boxId, inputId, hiddenId) {
-    document.getElementById(inputId).addEventListener('keydown', e => {
-        if (e.key !== 'Enter' && e.key !== ',') return;
+    const input = document.getElementById(inputId);
+    input.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' || e.isComposing) return;
         e.preventDefault();
+        commit(e);
+    });
+    // Leaving the field counts as Enter, since users often forget to press it.
+    input.addEventListener('blur', commit);
 
+    function commit(e) {
         let value = e.target.value.trim();
         e.target.value = '';
         if (!value) return;
 
         let tags = document.getElementById(hiddenId).value.split(',').filter(Boolean);
-        tags.push(value);
+        // Normalize a formatted price before using the legacy comma delimiter.
+        if (/^\d{1,3}(,\d{3})+$/.test(value)) value = value.replace(/,/g, '');
+        tags.push(...value.split(',').map(word => word.trim()).filter(Boolean));
         renderTags(boxId, inputId, hiddenId, tags);
         saveOption(hiddenId, tags.join(','));
-    });
+    }
 }
 
 function setupClearButton(clearBtnId, boxId, inputId, hiddenId) {
@@ -314,6 +326,8 @@ setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 setupTagInput('IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
 setupClearButton('IbonAreaNameClear', 'IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
+setupTagInput('TicketplusPriceBox', 'TicketplusPriceInput', 'TicketplusPrice');
+setupClearButton('TicketplusPriceClear', 'TicketplusPriceBox', 'TicketplusPriceInput', 'TicketplusPrice');
 
 document.addEventListener('DOMContentLoaded', restore_options);
 document.querySelectorAll('main input, main button').forEach(input => { input.disabled = true; });
@@ -334,7 +348,7 @@ document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest()
 
 let tabChanged = false;
 function selectTab(tab) {
-    if (!['tixcraft', 'kktix', 'ibon'].includes(tab)) tab = 'tixcraft';
+    if (!['tixcraft', 'kktix', 'ibon', 'ticketplus'].includes(tab)) tab = 'tixcraft';
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
