@@ -1,19 +1,12 @@
 addClockWidget(undefined, 'KktixAutoSelect');
 
-// auto-agree to terms & privacy policy checkbox on the KKTIX registration page.
-// Angular can re-render/reset the checkbox after our click (e.g. once it finishes
-// bootstrapping and applies its own model state), and that reset is a plain
-// property change that MutationObserver won't catch. So instead of clicking once,
-// keep re-checking for a while and re-click whenever it drifts back to unchecked.
-let attempts = 0;
-let poll = setInterval(() => {
-  attempts++;
-  let checkbox = document.getElementById("person_agree_terms");
-  if (checkbox && !checkbox.checked) {
-    checkbox.click(); // real click so AngularJS's ng-model picks it up
-  }
-  if (attempts >= 20) clearInterval(poll); // give up after ~10s
-}, 500);
+const kktixStatus = document.createElement('p');
+kktixStatus.id = 'tikitikiSelectionStatus';
+kktixStatus.setAttribute('role', 'status');
+kktixStatus.style.cssText = 'padding:8px 12px;background:#fff3bf;color:#333;';
+kktixStatus.hidden = true;
+document.body.prepend(kktixStatus);
+let kktixPreserveSelection = false;
 
 // One click at a time so Angular can update the quantity and purchase limits.
 function kktixSelectStep(input, plus, target, state, now) {
@@ -83,18 +76,28 @@ function fillKktixQualificationCode(input, code) {
 
 function updateKktixTickets() {
   if (!kktixSettings) return;
+  const messages = [];
+
   for (const input of document.querySelectorAll('.ticket-unit input.member-code')) {
     const quantity = input.closest('.ticket-unit').querySelector('input[ng-model="ticketModel.quantity"]');
     if (Number(quantity?.value) > 0) fillKktixQualificationCode(input, kktixSettings.KktixQualificationCode);
   }
   const ids = kktixSettings[kktixScopeKey];
   const rows = [...document.querySelectorAll('.ticket-unit [id^="ticket_"]')];
+  const hasSelection = rows.some(row => Number(row.querySelector('input[ng-model="ticketModel.quantity"]')?.value) > 0);
+  if (!hasSelection && kktixPreserveSelection) {
+    kktixPreserveSelection = false;
+    kktixRun = {};
+    kktixActiveId = undefined;
+  }
   for (const row of rows) {
     const name = row.querySelector(".ticket-name");
     if (!name) continue;
     const unit = row.closest('.ticket-unit');
     const hide = kktixSettings.KktixHideDisabledArea && /身障|身心障礙|輪椅/.test(name.textContent);
-    if (hide) {
+    const quantity = Number(row.querySelector('input[ng-model="ticketModel.quantity"]')?.value);
+    if (hide && quantity > 0) messages.push('已選票種，取消後才隱藏。');
+    if (hide && !(quantity > 0)) {
       if (!kktixHiddenUnits.has(unit)) kktixHiddenUnits.set(unit, unit.style.display);
       unit.style.display = 'none';
     } else if (kktixHiddenUnits.has(unit)) {
@@ -148,19 +151,27 @@ function updateKktixTickets() {
     toggle.style.background = selected ? "#16824b" : "#fff";
     toggle.style.color = selected ? "#fff" : "#16824b";
   }
-  if (!kktixSettings.KktixAutoSelect || kktixRun.done) return;
+  if (hasSelection && kktixPreserveSelection) messages.push('保留目前選票；清除已選張數後才套用新規則。');
+  kktixStatus.textContent = [...new Set(messages)].join(' ');
+  kktixStatus.hidden = messages.length === 0;
+  if (!kktixSettings.KktixAutoSelect || kktixRun.done || kktixPreserveSelection) return;
   const target = Number(kktixSettings.KktixTicketNumber);
   if (!Number.isInteger(target) || target < 0 || target > 4) return;
   const candidates = kktixCandidates(rows, ids, target, kktixSettings.KktixTieBreak, kktixSettings.KktixAllowInsufficient);
   for (const { row, goal } of candidates) {
-    if (kktixHiddenUnits.has(row.closest('.ticket-unit'))) continue;
+    if (kktixSettings.KktixHideDisabledArea && /身障|身心障礙|輪椅/.test(row.querySelector('.ticket-name')?.textContent)) continue;
     if (kktixActiveId && row.id !== kktixActiveId) continue;
     const input = row.querySelector('input[type="text"], input[type="number"]');
     const plus = row.querySelector("button.plus");
     if (!input || input.disabled || !plus || !input.getClientRects().length) continue;
     if (!kktixActiveId && plus.disabled && Number(input.value) === 0) continue;
     // Leave an existing selection in another row for the user to review.
-    if (rows.some(other => other !== row && Number(other.querySelector("input")?.value) > 0)) return;
+    if (rows.some(other => other !== row && Number(other.querySelector('input[ng-model="ticketModel.quantity"]')?.value) > 0) || Number(input.value) > goal) {
+      kktixStatus.textContent = '保留目前選票；清除已選張數後才套用新規則。';
+      kktixStatus.hidden = false;
+      kktixPreserveSelection = true;
+      return;
+    }
     if (!kktixActiveId) {
       kktixActiveId = row.id;
     }
@@ -190,6 +201,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     return;
   }
   if (!Array.isArray(kktixSettings[kktixScopeKey])) kktixSettings[kktixScopeKey] = [];
+  kktixPreserveSelection = true;
   kktixActiveId = undefined;
   kktixRun = {};
   updateKktixTickets();

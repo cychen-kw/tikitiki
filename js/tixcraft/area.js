@@ -5,18 +5,35 @@ const highlightStyle = document.createElement('style');
 highlightStyle.textContent = 'ul.area-list > li.tikitiki-area-match, ul.area-list > li.tikitiki-area-match > a { background-color: #fff3bf !important; }';
 document.head.appendChild(highlightStyle);
 
-function highlightAreas(keywordString) {
+// A purely numeric keyword (e.g. "800", "2,800") means "match this exact price",
+// not "contains this digit sequence" — otherwise "800" wrongly matches "2800".
+function keywordMatches(text, keyword, priceMatch) {
+  const normalizedKeyword = keyword.replace(/,/g, '');
+  if (priceMatch && /^\d+$/.test(normalizedKeyword)) {
+    // The price ends the area label; availability is appended after it.
+    const label = text.replace(/(?:剩餘\s*\d+.*|\d+\s*seat\(s\)\s*remaining.*|熱賣中.*|Available.*|已售完.*|Sold out.*)$/i, '').trim();
+    const price = label.match(/(?:^|[^\d,])((?:\d{1,3}(?:,\d{3})+|\d+))\s*(?:元|TWD)?$/i);
+    return price?.[1].replace(/,/g, '') === normalizedKeyword;
+  }
+  return text.includes(keyword);
+}
+
+function highlightAreas(keywordString, priceMatch) {
   const keywords = keywordString.split(',').filter(Boolean);
   document.querySelectorAll('ul.area-list > li').forEach(li => {
-    li.classList.toggle('tikitiki-area-match', keywords.some(keyword => li.textContent.includes(keyword)));
+    li.classList.toggle('tikitiki-area-match', keywords.some(keyword => keywordMatches(li.textContent, keyword, priceMatch)));
   });
 }
 
+let currentPriceMatch = true;
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.AutoClickAreaName) highlightAreas(changes.AutoClickAreaName.newValue || '');
+  if (area !== 'local') return;
+  if (changes.AreaKeywordPriceMatch) currentPriceMatch = changes.AreaKeywordPriceMatch.newValue;
+  if (changes.AutoClickAreaName) highlightAreas(changes.AutoClickAreaName.newValue || '', currentPriceMatch);
+  if (changes.AutoClickArea?.newValue === true) clickCurrentArea();
 });
 
-function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient) {
+function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient, priceMatch) {
   // no keywords means every area is acceptable
   let keywords = keywordString.length ? keywordString.split(',') : [];
   let candidates = [];
@@ -28,7 +45,7 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
     if (!a) return; // sold out / unavailable, no link to click
 
     let text = li.textContent;
-    let keywordIndex = keywords.length ? keywords.findIndex(el => text.includes(el)) : 0;
+    let keywordIndex = keywords.length ? keywords.findIndex(el => keywordMatches(text, el, priceMatch)) : 0;
     if (keywordIndex === -1) return;
 
     if (!allowInsufficient) {
@@ -82,16 +99,18 @@ chrome.storage.local.get({
   AutoClickAreaName: "",
   AutoClickTieBreak: "keyword",
   AutoClickAllowInsufficient: false,
-  TicketNumber: 0
+  TicketNumber: 0,
+  AreaKeywordPriceMatch: true
 }, items => {
-  highlightAreas(items.AutoClickAreaName);
+  currentPriceMatch = items.AreaKeywordPriceMatch;
+  highlightAreas(items.AutoClickAreaName, currentPriceMatch);
   // TicketNumber 0 means "max available", so any ticket at all counts as enough
   let neededTickets = items.TicketNumber > 0 ? parseInt(items.TicketNumber, 10) : 1;
 
   const AreaNameArray = items.AreaName.split(',').map(keyword => keyword.trim()).filter(Boolean);
   if (AreaNameArray.length) {
     document.querySelectorAll("ul.area-list > li").forEach(li => {
-      if (!AreaNameArray.some(el => li.textContent.includes(el))) {
+      if (!AreaNameArray.some(el => keywordMatches(li.textContent, el, items.AreaKeywordPriceMatch))) {
         li.style.display = "none";
       }
     });
@@ -121,15 +140,19 @@ chrome.storage.local.get({
 
   const hiddenKeywords = items.HiddenAreaName.split(',').map(keyword => keyword.trim()).filter(Boolean);
   document.querySelectorAll('ul.area-list > li').forEach(li => {
-    if (hiddenKeywords.some(keyword => li.textContent.includes(keyword))) li.style.display = 'none';
+    if (hiddenKeywords.some(keyword => keywordMatches(li.textContent, keyword, items.AreaKeywordPriceMatch))) li.style.display = 'none';
   });
 
   if (items.AutoClickArea) {
-    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient);
+    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient, items.AreaKeywordPriceMatch);
   }
 
-  addClockWidget(() => chrome.storage.local.get(items, current => {
-    const needed = Number(current.TicketNumber) > 0 ? Number(current.TicketNumber) : 1;
-    runAutoClickArea(current.AutoClickAreaName, current.AutoClickTieBreak, needed, current.AutoClickAllowInsufficient);
-  }));
+  addClockWidget();
 });
+
+function clickCurrentArea() {
+  chrome.storage.local.get({ AutoClickAreaName: '', AutoClickTieBreak: 'keyword', TicketNumber: 0, AutoClickAllowInsufficient: false, AreaKeywordPriceMatch: true }, current => {
+    const needed = Number(current.TicketNumber) > 0 ? Number(current.TicketNumber) : 1;
+    runAutoClickArea(current.AutoClickAreaName, current.AutoClickTieBreak, needed, current.AutoClickAllowInsufficient, current.AreaKeywordPriceMatch);
+  });
+}

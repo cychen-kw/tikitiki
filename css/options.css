@@ -18,6 +18,9 @@
   --ibon: #e5006e;
   --ibon-dark: #b30054;
   --ibon-tint: #fde3ee;
+  --ticketplus: #1e88c8;
+  --ticketplus-dark: #156499;
+  --ticketplus-tint: #e1f1fb;
 }
 
 * {
@@ -232,6 +235,9 @@ body {
 .tab-icon-ibon { background: var(--ibon); }
 .tab-btn[data-tab="ibon"].active { color: var(--ibon); border-bottom-color: var(--ibon); }
 #tab-ibon { --accent: var(--ibon); --accent-dark: var(--ibon-dark); --accent-tint: var(--ibon-tint); }
+.tab-icon-ticketplus { background: var(--ticketplus); }
+.tab-btn[data-tab="ticketplus"].active { color: var(--ticketplus); border-bottom-color: var(--ticketplus); }
+#tab-ticketplus { --accent: var(--ticketplus); --accent-dark: var(--ticketplus-dark); --accent-tint: var(--ticketplus-tint); }
 
 .tab-btn.active {
   color: var(--accent);
@@ -531,9 +537,9 @@ input[type="text"]:focus {
 .scope-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .scope-table th, .scope-table td { padding: 16px 8px; text-align: left; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; line-height: 1.6; }
 .scope-table th { white-space: nowrap; }
-.scope-table .scope-group th { white-space: normal; background: #f3f8ef; padding: 16px 12px; border-top: 16px solid white; }
+.scope-table .scope-group th { white-space: normal; background: var(--accent-tint); padding: 16px 12px; border-top: 16px solid white; }
 .scope-group .clear-btn { margin-top: 6px; }
-.scope-group th > a { display: block; color: var(--kktix-dark); text-decoration: none; font-size: 14px; }
+.scope-group th > a { display: block; color: var(--accent-dark); text-decoration: none; font-size: 14px; }
 .scope-group th > a:hover { text-decoration: underline; }
 .scope-ticket-id { display: block; color: var(--text-muted); font-size: 11px; margin-top: 5px; }
 .scope-order { width: 72px; color: var(--text-muted); text-align: center !important; white-space: nowrap; vertical-align: middle; }

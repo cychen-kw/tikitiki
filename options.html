@@ -28,6 +28,7 @@
     <button type="button" class="tab-btn active" data-tab="tixcraft"><span class="tab-icon tab-icon-tixcraft">T</span> 拓元 tixCraft</button>
     <button type="button" class="tab-btn" data-tab="kktix"><span class="tab-icon tab-icon-kktix">K</span> KKTIX</button>
     <button type="button" class="tab-btn" data-tab="ibon"><span class="tab-icon tab-icon-ibon">i</span> ibon</button>
+    <button type="button" class="tab-btn" data-tab="ticketplus"><span class="tab-icon tab-icon-ticketplus">+</span> 遠大 ticketplus</button>
   </div>
 
   <main class="sections" id="tab-tixcraft">
@@ -53,7 +54,7 @@
       <label class="field-label" for="HiddenAreaNameInput">自訂隱藏關鍵字</label>
       <div class="tag-input-row">
         <div class="tag-input" id="HiddenAreaNameBox">
-          <input type="text" id="HiddenAreaNameInput" placeholder="輸入關鍵字後按 Enter 新增" aria-describedby="HiddenAreaNameHint">
+          <input type="text" id="HiddenAreaNameInput" placeholder="輸入關鍵字，按 Enter 或點其他地方即新增" aria-describedby="HiddenAreaNameHint">
         </div>
         <button type="button" class="clear-btn" id="HiddenAreaNameClear">清空</button>
       </div>
@@ -63,12 +64,17 @@
       <label class="field-label" for="AreaNameInput">僅顯示這些區域，其餘隱藏</label>
       <div class="tag-input-row">
         <div class="tag-input" id="AreaNameBox">
-          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱後按 Enter 新增" aria-describedby="AreaNameHint">
+          <input type="text" id="AreaNameInput" placeholder="輸入區域名稱，按 Enter 或點其他地方即新增" aria-describedby="AreaNameHint">
         </div>
         <button type="button" class="clear-btn" id="AreaNameClear">清空</button>
       </div>
       <p class="hint" id="AreaNameHint">關鍵字按 Enter 新增後自動儲存；有關鍵字時僅顯示符合任一關鍵字的區域，清空則不限制。其他隱藏規則仍適用，重新整理選區頁生效。</p>
       <input type="hidden" id="AreaName">
+
+      <label class="row">
+        <input type="checkbox" id="AreaKeywordPriceMatch" class='option toggle-switch' />
+        <span>關鍵字為數字時比對票價<br><small>純數字關鍵字（如 800、2,800）只比對完全相同的票價，不會比對成其他票價的一部分（如 2800 裡的 800）；拓元所有區域關鍵字設定皆適用，重新整理選區頁生效。</small></span>
+      </label>
     </section>
 
     <section class="card">
@@ -80,11 +86,11 @@
       </label>
       <div class="tag-input-row indent">
         <div class="tag-input" id="AutoClickAreaNameBox">
-          <input type="text" id="AutoClickAreaNameInput" placeholder="留空代表不限區域，輸入後按 Enter 新增">
+          <input type="text" id="AutoClickAreaNameInput" placeholder="留空代表不限區域，按 Enter 或點其他地方即新增">
         </div>
-        <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空</button>
+        <button type="button" class="clear-btn" id="AutoClickAreaNameClear">清空（不限區域）</button>
       </div>
-      <p class="hint indent">清空關鍵字代表不限區域；仍會排除已隱藏的區域。按 Enter 新增，可拖曳泡泡換順序（或按 Alt + 左右方向鍵），變更後自動儲存；選擇「加入順序」時依此排列優先點擊。</p>
+      <p class="hint indent">清空關鍵字代表不限區域；仍會排除已隱藏的區域。按 Enter 新增，可拖曳泡泡換順序，變更後自動儲存；選擇「加入順序」時依此排列優先點擊。</p>
       <input type="hidden" id="AutoClickAreaName">
 
       <div class="subpanel indent">
@@ -138,7 +144,7 @@
       <h2 class="card-title"><span class="card-icon">🪑</span>區域顯示</h2>
       <label class="row">
         <input type="checkbox" id="KktixHideDisabledArea" class="option toggle-switch">
-        <span>隱藏身障票種<br><small>票種名稱包含「身障」「身心障礙」「輪椅」時隱藏，並排除自動點擊。</small></span>
+        <span>隱藏身障票種<br><small>票種名稱包含「身障」「身心障礙」「輪椅」時排除自動點擊；已有張數者保留顯示，取消後才隱藏。</small></span>
       </label>
     </section>
 
@@ -186,7 +192,7 @@
         <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="3">3 張</label>
         <label class="radio-option"><input type="radio" name="KktixTicketNumber" value="4">4 張</label>
       </div>
-      <p class="hint">最大張數會逐次點擊原本的加號，直到網站不允許增加；已選張數會計入目標。</p>
+      <p class="hint">修改選票規則時保留已選張數；清除已選張數後才套用新規則。最大張數會逐次點擊原本的加號，直到網站不允許增加；已選張數會計入目標。</p>
     </section>
 
     <section class="card">
@@ -196,18 +202,13 @@
       <p class="hint">選票後自動填入出現的資格碼欄位，適用於手動及自動點擊。請保留正確大小寫與符號；留空即停用，不會覆蓋已輸入的內容。</p>
     </section>
 
-    <section class="card">
-      <h2 class="card-title"><span class="card-icon">✅</span>報名頁面</h2>
-      <p class="hint" style="margin-top:0;">自動勾選「我已經閱讀並同意 服務條款 與 隱私權政策」。</p>
-    </section>
-
   </main>
   <main class="sections" id="tab-ibon" hidden>
     <section class="card">
       <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
       <label class="row"><input type="checkbox" id="IbonAutoSelect" class="option toggle-switch"><span>自動選區</span></label>
       <label class="field-label" for="IbonAreaNameInput">區域關鍵字</label>
-      <div class="tag-input-row"><div class="tag-input" id="IbonAreaNameBox"><input type="text" id="IbonAreaNameInput" placeholder="輸入後按 Enter 新增"></div><button type="button" class="clear-btn" id="IbonAreaNameClear">清空</button></div>
+      <div class="tag-input-row"><div class="tag-input" id="IbonAreaNameBox"><input type="text" id="IbonAreaNameInput" placeholder="按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="IbonAreaNameClear">清空</button></div>
       <input type="hidden" id="IbonAreaName">
       <p class="hint">依關鍵字加入順序優先，同關鍵字依畫面由上到下選一區。可拖曳排序；未填關鍵字不自動選區。使用電腦配位，略過已售完或未開賣區域。</p>
     </section>
@@ -221,7 +222,40 @@
         <label class="radio-option"><input type="radio" name="IbonTicketNumber" value="4">4 張</label>
       </div>
       <label class="row"><input type="checkbox" id="IbonAllowSeparated" class="option toggle-switch"><span>接受不連位座位</span></label>
-      <p class="hint">指定張數必須在網站選項中存在；最大張數依網站選單為準。僅處理單一票種的數量頁，選完由你確認並按「下一步」。</p>
+      <p class="hint">指定張數必須在網站選項中存在；最大張數依網站選單為準。張數與不連位設定不受自動選區開關影響；僅處理單一票種的數量頁，選完由你確認並按「下一步」。</p>
+    </section>
+  </main>
+  <main class="sections" id="tab-ticketplus" hidden>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
+      <label class="row"><input type="checkbox" id="TicketplusAutoSelect" class="option toggle-switch"><span>自動選區</span></label>
+      <label class="field-label" for="TicketplusPriceInput">票價</label>
+      <div class="tag-input-row"><div class="tag-input" id="TicketplusPriceBox"><input type="text" id="TicketplusPriceInput" placeholder="例如 5480，按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="TicketplusPriceClear">清空</button></div>
+      <input type="hidden" id="TicketplusPrice">
+      <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空不自動選區。略過已售完、剩餘不足及身障區域。</p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
+      <p class="hint">在購票頁點開票區後，按票種旁的「＋」加入（記為「票區 / 票種」）；已加入時只依此清單選票，清空後改用上方票價。拖曳 ⠿ 調整順序 · 點活動名稱前往購票</p>
+      <p id="TicketplusScopeStatus" class="hint" role="status"></p>
+      <div class="scope-table-wrap">
+        <table class="scope-table">
+          <thead><tr><th scope="col">順序</th><th scope="col">票種</th><th scope="col">移除</th></tr></thead>
+          <tbody id="TicketplusScopeList"></tbody>
+        </table>
+      </div>
+      <div class="scope-footer"><button type="button" class="clear-btn" id="TicketplusScopeClear" disabled>清空所有活動的票種</button></div>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🎫</span>購票張數</h2>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="0">最大張數</label>
+        <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="1">1 張</label>
+        <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="2" checked>2 張</label>
+        <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="3">3 張</label>
+        <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="4">4 張</label>
+      </div>
+      <p class="hint">逐次點擊網站的「+」按鈕增加張數。指定張數須剛好符合，不足時改選下一個符合的區域；最大張數點到「+」無法再按為止。選完由你確認並按「下一步」；手動點擊票區後本頁停止自動操作。</p>
     </section>
   </main>
 

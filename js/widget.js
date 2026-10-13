@@ -1,7 +1,8 @@
 // Shared floating clock and platform-specific auto-click toggle.
 function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
   const kktix = settingKey === 'KktixAutoSelect';
-  const ibon = settingKey === 'IbonAutoSelect';
+  const ticketplus = settingKey === 'TicketplusAutoSelect';
+  const ibon = settingKey === 'IbonAutoSelect' || ticketplus;
   const orderKey = ibon ? 'IbonTieBreak' : kktix ? 'KktixTieBreak' : 'AutoClickTieBreak';
   const defaultOrder = kktix ? 'top' : 'keyword';
   const orderNames = {
@@ -48,7 +49,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
           'appearance:none;-webkit-appearance:none;box-sizing:border-box;margin:0;padding:0;border:none;' +
           'width:32px;height:18px;border-radius:999px;' +
           'position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;">' +
-        '<span>自動點擊</span>' +
+        '<span>' + (kktix ? '自動選票' : '自動選區') + '</span>' +
       '</label>' +
       '<div id="tikitikiPriority" style="font-size:12px;color:#555;margin-top:6px;"></div>' +
       '<div id="tikitikiLoginWarning" role="status" style="display:none;margin-top:8px;padding:6px 8px;' +
@@ -124,7 +125,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     let settingsBtn = widget.querySelector("#tikitikiSettings");
     settingsBtn.addEventListener("mouseenter", () => settingsBtn.style.background = "#f2f2f2");
     settingsBtn.addEventListener("mouseleave", () => settingsBtn.style.background = "transparent");
-    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: ibon ? 'ibon' : kktix ? 'kktix' : 'tixcraft' }));
+    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: ticketplus ? 'ticketplus' : ibon ? 'ibon' : kktix ? 'kktix' : 'tixcraft' }));
 
     let minimized = false;
     minimizeBtn.addEventListener("click", () => {

@@ -1,7 +1,7 @@
 {
   "name": "TikiTiki",
   "description": "有票噴霧",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "permissions": [ "activeTab", "storage" ],
   "background": {
     "service_worker": "background.js"
@@ -71,6 +71,11 @@
       "matches" : [ "https://kktix.com/events/*/registrations/new*" ],
       "run_at": "document_idle",
       "js" : [ "js/widget.js", "js/kktix/kktix.js" ]
+    },
+    {
+      "matches" : [ "https://ticketplus.com.tw/*" ],
+      "run_at": "document_idle",
+      "js" : [ "js/widget.js", "js/ticketplus/ticketplus.js" ]
     }
   ],
   "manifest_version": 3

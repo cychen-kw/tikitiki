@@ -52,9 +52,16 @@ function area(name, remaining) {
   select.value = '1';
   q.tick();
   assert.equal(select.value, '1', 'do not override later manual changes');
+  q.change({ IbonAutoSelect: { newValue: false } }, 'local');
+  assert.equal(select.value, '1', 'switching off must preserve manual quantity');
+  q.change({ IbonAreaName: { newValue: 'A' } }, 'local');
+  assert.equal(select.value, '1', 'area keywords must not refill quantity');
   q.change({ IbonTicketNumber: { newValue: '0' } }, 'local');
   assert.equal(select.value, '4');
+  select.value = '1';
   q.change({ IbonAllowSeparated: { newValue: false } }, 'local');
+  q.tick();
+  assert.equal(select.value, '1', 'changing seating preference preserves manual quantity');
   assert.equal(q.separated.checked, false);
   const invalid = control({ value: '0', options: [{ value: '0' }, { value: '5' }] });
   await page('UTK0201_001.aspx', { IbonAutoSelect: true }, [], [invalid]);

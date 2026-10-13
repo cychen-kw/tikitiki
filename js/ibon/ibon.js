@@ -37,14 +37,14 @@ function updateIbon() {
   const selects = [...document.querySelectorAll('select[id^="ctl00_ContentPlaceHolder1_DataGrid_"][id$="_AMOUNT_DDL"]')];
   if (selects.length !== 1) return; // Multiple ticket types require the user's choice.
   const select = selects[0];
-  if (select.disabled || ibonHandled.has(select)) return;
+  if (select.disabled) return;
   const target = Number(ibonSettings.IbonTicketNumber);
   if (!Number.isInteger(target) || target < 0 || target > 4) return;
   const options = [...select.options].filter(option => !option.disabled && Number.isInteger(Number(option.value)) && Number(option.value) > 0);
   const chosen = target === 0 ? options.sort((a, b) => Number(b.value) - Number(a.value))[0] : options.find(option => Number(option.value) === target);
   if (!chosen) return;
   const separated = document.getElementById('ctl00_ContentPlaceHolder1_notConsecutive');
-  if (separated && separated.checked !== Boolean(ibonSettings.IbonAllowSeparated)) {
+  if (separated && !ibonHandled.has(separated) && separated.checked !== Boolean(ibonSettings.IbonAllowSeparated)) {
     if (separated.disabled) return;
     if (!ibonHandled.has(separated)) {
       ibonHandled.add(separated);
@@ -52,6 +52,8 @@ function updateIbon() {
     }
     return;
   }
+  if (separated) ibonHandled.add(separated);
+  if (ibonHandled.has(select)) return;
   ibonHandled.add(select);
   if (select.value !== chosen.value) {
     select.focus();
@@ -74,8 +76,14 @@ chrome.storage.onChanged.addListener((changes, area) => {
     changed = true;
   }
   if (!changed) return;
-  ibonAreaClicked = false;
-  ibonHandled = new WeakSet();
+  if (changes.IbonAutoSelect || changes.IbonAreaName) ibonAreaClicked = false;
+  if (changes.IbonTicketNumber) {
+    for (const select of document.querySelectorAll('select[id^="ctl00_ContentPlaceHolder1_DataGrid_"][id$="_AMOUNT_DDL"]')) ibonHandled.delete(select);
+  }
+  if (changes.IbonAllowSeparated) {
+    const separated = document.getElementById('ctl00_ContentPlaceHolder1_notConsecutive');
+    if (separated) ibonHandled.delete(separated);
+  }
   updateIbon();
 });
 setInterval(updateIbon, 300);
