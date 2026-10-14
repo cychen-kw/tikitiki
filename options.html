@@ -227,12 +227,37 @@
   </main>
   <main class="sections" id="tab-ticketplus" hidden>
     <section class="card">
+      <h2 class="card-title"><span class="card-icon">▶</span>自動下一步</h2>
+      <label class="row"><input type="checkbox" id="TicketplusNextOnlySpecified" class="option toggle-switch" checked><span>僅在指定頁面自動下一步</span></label>
+      <label class="field-label" for="TicketplusNextUrl">指定購票頁網址</label>
+      <input type="text" id="TicketplusNextUrl" class="option" placeholder="https://ticketplus.com.tw/order/活動代碼/場次代碼" autocomplete="off" spellcheck="false">
+      <p class="hint">貼上要啟用的購票頁完整網址，活動與場次必須相同。留空時不自動下一步；關閉限制則所有購票頁皆適用。仍須開啟自動選區並完成選票。右上角小工具會提示此頁是否適用。</p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🔔</span>有票提示音</h2>
+      <button type="button" class="clear-btn" id="TicketplusSoundPreview">試聽叮叮</button>
+      <p class="hint">與購票頁相同的小聲雙音提示，實際音量依系統音量而定。</p>
+      <p class="hint" id="TicketplusSoundStatus" role="status"></p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">🔑</span>預先填入序號</h2>
+      <label class="field-label" for="TicketplusSerialNumber">購票序號</label>
+      <input type="text" id="TicketplusSerialNumber" class="option" placeholder="例如永豐金證券專屬購票序號" autocomplete="off" spellcheck="false">
+      <p class="hint">遇到「購票序號」欄位時自動填入，保留大小寫與符號；不覆蓋已輸入或已操作的欄位，不自動送出。留空則不填入，無須開啟自動選區。</p>
+    </section>
+    <section class="card">
+      <h2 class="card-title"><span class="card-icon">👁️</span>區域顯示</h2>
+      <label class="row"><input type="checkbox" id="TicketplusHideSoldOut" class="option toggle-switch"><span>隱藏售完區塊</span></label>
+      <p class="hint">隱藏已售完的票區與票種。要加入售完票種時，先關閉此設定，再點票種旁的「＋」；已加入清單會保留。</p>
+    </section>
+    <section class="card">
       <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
       <label class="row"><input type="checkbox" id="TicketplusAutoSelect" class="option toggle-switch"><span>自動選區</span></label>
+      <label class="row"><input type="checkbox" id="TicketplusIgnoreDisabledArea" class="option toggle-switch"><span>忽略身障區</span></label>
       <label class="field-label" for="TicketplusPriceInput">票價</label>
       <div class="tag-input-row"><div class="tag-input" id="TicketplusPriceBox"><input type="text" id="TicketplusPriceInput" placeholder="例如 5480，按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="TicketplusPriceClear">清空</button></div>
       <input type="hidden" id="TicketplusPrice">
-      <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空不自動選區。略過已售完、剩餘不足及身障區域。</p>
+      <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空時依畫面順序選擇全區。開啟自動選區後，每隔隨機 4～8 秒更新票數，小工具顯示倒數；偵測到有票、已有選票或手動接管時暫停。略過已售完與剩餘不足區域；開啟「忽略身障區」時略過身障、身心障礙及輪椅區域。</p>
     </section>
     <section class="card">
       <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
@@ -255,13 +280,14 @@
         <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="3">3 張</label>
         <label class="radio-option"><input type="radio" name="TicketplusTicketNumber" value="4">4 張</label>
       </div>
-      <p class="hint">逐次點擊網站的「+」按鈕增加張數。指定張數須剛好符合，不足時改選下一個符合的區域；最大張數點到「+」無法再按為止。選完由你確認並按「下一步」；手動點擊票區後本頁停止自動操作。</p>
+      <p class="hint">逐次點擊網站的「+」按鈕增加張數。指定張數須剛好符合，不足時改選下一個符合的區域；最大張數點到「+」無法再按為止。在適用頁面自動選完後會點擊一次「下一步」；手動點擊票區後本頁停止自動操作。偵測到有票時播放小聲雙音提示；請先在購票頁點一下以啟用聲音。</p>
     </section>
   </main>
 
   <footer class="page-footer">© 2026 kag+</footer>
 </div>
 
+<script src="js/sound.js"></script>
 <script src="options.js"></script>
 </body>
 </html>

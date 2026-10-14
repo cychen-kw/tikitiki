@@ -5,7 +5,7 @@ const optionDefaults = {
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
     IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false,
-    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2'
+    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: ''
 };
 let optionsReady = false;
 let statusTimer;
@@ -421,4 +421,19 @@ document.getElementById('brandLogo').addEventListener('click', () => {
     bubble.style.setProperty('--float-duration', (2.4 + Math.random() * 0.6) + 's');
     wrap.appendChild(bubble);
     bubble.addEventListener('animationend', () => bubble.remove());
+});
+
+let previewAudio;
+document.getElementById('TicketplusSoundPreview').addEventListener('click', async () => {
+    const status = document.getElementById('TicketplusSoundStatus');
+    try {
+        previewAudio ??= new AudioContext();
+        if (previewAudio.state === 'suspended') await previewAudio.resume();
+        if (previewAudio.state !== 'running') throw new Error('Audio is not running');
+        playTikitikiDing(previewAudio);
+        status.textContent = '已播放提示音';
+    } catch (error) {
+        status.textContent = '無法播放提示音，請檢查瀏覽器與系統音量後重試。';
+        console.error('TikiTiki: 無法試聽提示音', error);
+    }
 });

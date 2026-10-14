@@ -52,6 +52,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
         '<span>' + (kktix ? '自動選票' : '自動選區') + '</span>' +
       '</label>' +
       '<div id="tikitikiPriority" style="font-size:12px;color:#555;margin-top:6px;"></div>' +
+      (ticketplus ? '<div id="tikitikiRefreshCountdown" style="font-size:12px;color:#555;margin-top:6px;">自動更新已關閉</div><div id="tikitikiNextStatus" style="font-size:12px;color:#555;margin-top:6px;">自動下一步：此頁未啟用</div>' : '') +
       '<div id="tikitikiLoginWarning" role="status" style="display:none;margin-top:8px;padding:6px 8px;' +
         'border:1px solid #b32029;border-radius:6px;background:#fff0f0;color:#b32029;font-size:13px;font-weight:700;"></div>';
     document.body.appendChild(widget);

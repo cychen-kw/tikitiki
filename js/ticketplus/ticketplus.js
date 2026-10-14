@@ -1,9 +1,13 @@
-// Open the matching area and press the site's + button one click at a time; never press Next.
-const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2' };
+// Select tickets one click at a time, then advance once to the site's next step.
+const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '' };
 let ticketplusSettings;
 let ticketplusScope = { key: '', ids: [] };
 let ticketplusRun = {};
 let ticketplusPath = location.pathname;
+let ticketplusNextRefresh = 0;
+let ticketplusAudio;
+let ticketplusStockAnnounced = false;
+const ticketplusHandledSerials = new WeakSet();
 const ticketplusDisabledArea = /身障|身心障礙|輪椅/;
 
 // A trusted click on the ticket list means the user has taken over this page.
@@ -11,7 +15,10 @@ const ticketplusDisabledArea = /身障|身心障礙|輪椅/;
 document.addEventListener('click', event => {
   if (!event.isTrusted || event.target.closest?.('.tikitiki-ticket-scope')) return;
   const button = event.target.closest?.('button')?.textContent || '';
-  if (/更新票數/.test(button)) ticketplusRun.refreshAt = Date.now();
+  if (/更新票數/.test(button)) {
+    ticketplusRun.refreshAt = Date.now();
+    ticketplusNextRefresh = 0;
+  }
   else if (/清除選擇/.test(button) || event.target.closest?.('.seats-area, .count-button')) {
     ticketplusRun.done = true;
     delete ticketplusRun.selected;
@@ -48,6 +55,12 @@ function ticketplusId(row) {
   return panel ? ticketplusName(panel) + ' / ' + ticketplusName(row) : ticketplusName(row);
 }
 
+function ticketplusSoldOut(item) {
+  const text = item.matches?.('.v-expansion-panel')
+    ? item.querySelector('.v-expansion-panel-header')?.textContent || '' : item.textContent;
+  return item.matches?.('.soldout') || /售完|暫無票券|剩餘\s*0(?!\d)/.test(text);
+}
+
 function ticketplusScopeKey() {
   return 'TicketplusTicketScope:' + location.pathname.split('/')[2];
 }
@@ -57,17 +70,20 @@ function ticketplusDecorate() {
   const ids = ticketplusScope.ids;
   const items = [...[...document.querySelectorAll('.seats-area .ticket-price')].map(price => price.closest('.row')),
     ...[...document.querySelectorAll('.rwd-margin > .row')].filter(row => !row.closest('.seats-area') && ticketplusPrices(row.textContent).length)];
+  for (const item of [...document.querySelectorAll('.seats-area > .v-expansion-panel'), ...items]) {
+    if (item) item.classList.toggle('tikitiki-hide-soldout', Boolean(ticketplusSettings?.TicketplusHideSoldOut && ticketplusSoldOut(item)));
+  }
   for (const item of items) {
     if (!item) continue;
     const name = ticketplusId(item);
     const nameElement = ticketplusNameElement(item);
-    if (!ticketplusName(item) || !nameElement || ticketplusDisabledArea.test(name)) continue;
+    if (!ticketplusName(item) || !nameElement) continue;
     let toggle = nameElement.querySelector('.tikitiki-ticket-scope');
     if (!toggle) {
       toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'tikitiki-ticket-scope';
-      toggle.style.cssText = 'margin-left:8px;min-width:26px;min-height:26px;padding:0 5px;border:1px solid #1e88c8;border-radius:50%;font-size:16px;cursor:pointer;vertical-align:middle;';
+      toggle.style.cssText = 'margin-left:8px;min-width:26px;min-height:26px;padding:0 5px;border:1px solid #1e88c8;border-radius:50%;font-size:16px;cursor:pointer;vertical-align:middle;pointer-events:auto;';
       toggle.addEventListener('click', async event => {
         event.preventDefault();
         event.stopPropagation();
@@ -100,12 +116,35 @@ function ticketplusDecorate() {
   }
 }
 
+document.addEventListener('input', event => {
+  if (event.isTrusted && event.target.matches?.('input[placeholder*="購票序號"]')) {
+    ticketplusHandledSerials.add(event.target);
+  }
+}, true);
+
+function fillTicketplusSerialNumber() {
+  const serial = ticketplusSettings?.TicketplusSerialNumber;
+  if (typeof serial !== 'string' || !serial) return;
+  for (const input of document.querySelectorAll('input[placeholder*="購票序號"]')) {
+    if (input.disabled || input.readOnly || !input.getClientRects().length ||
+        ticketplusHandledSerials.has(input)) continue;
+    // Preserve existing/manual input, including a field the user clears after our fill.
+    ticketplusHandledSerials.add(input);
+    if (input.value) continue;
+    input.value = serial;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}
+
 function updateTicketplus(now = Date.now()) {
   if (location.pathname !== ticketplusPath) {
     ticketplusPath = location.pathname;
+    ticketplusNextRefresh = 0;
     ticketplusRun = {};
   }
   if (!location.pathname.startsWith('/order/')) return;
+  fillTicketplusSerialNumber();
   const key = ticketplusScopeKey();
   if (ticketplusScope.key !== key) {
     ticketplusScope = { key, ids: [], loading: true };
@@ -125,19 +164,23 @@ function updateTicketplus(now = Date.now()) {
   if (!ticketplusSettings?.TicketplusAutoSelect || run.done) return;
   // Added tickets take precedence; without any, fall back to the price list.
   const scoped = ticketplusScope.ids.length > 0;
-  const prefs = scoped ? ticketplusScope.ids :
+  const panels = [...document.querySelectorAll('.seats-area > .v-expansion-panel')];
+  let prefs = scoped ? ticketplusScope.ids :
     String(ticketplusSettings.TicketplusPrice).split(',').map(Number).filter(n => Number.isInteger(n) && n > 0);
+  const unrestricted = !scoped && !String(ticketplusSettings.TicketplusPrice).trim();
+  // Preserve page order even when a lower area is already open.
+  if (unrestricted) prefs = panels.length ? panels.map(ticketplusName) : [null];
   const target = Number(ticketplusSettings.TicketplusTicketNumber);
   if (!prefs.length || !Number.isInteger(target) || target < 0 || target > 4) return;
   run.failed ??= new Set();
 
-  const matches = (text, name, want) => !/售完/.test(text) && !ticketplusDisabledArea.test(text) &&
+  const matches = (text, name, want) => !/售完|暫無票券|剩餘\s*0(?!\d)/.test(text) &&
+    !(ticketplusSettings.TicketplusIgnoreDisabledArea && ticketplusDisabledArea.test(text + ' ' + name)) &&
     !(target > 0 && Number(text.match(/剩餘\s*(\d+)/)?.[1] ?? Infinity) < target) &&
-    (scoped ? name === want : ticketplusPrices(text).includes(want));
+    (scoped ? name === want : unrestricted ? want === null || name === want || name.startsWith(want + ' / ') : ticketplusPrices(text).includes(want));
   // Ticket-type pages list every row with its own count button; area pages only render
   // the count buttons of the opened area. Sold-out rows have no count button.
   const rows = [...document.querySelectorAll('.count-button')].map(count => count.closest('.row')).filter(Boolean);
-  const panels = [...document.querySelectorAll('.seats-area > .v-expansion-panel')];
   let row;
   for (const want of prefs) {
     row = rows.find(row => !run.failed.has(row.closest('.v-expansion-panel') || row) && matches(row.textContent, ticketplusId(row), want));
@@ -194,6 +237,101 @@ function updateTicketplus(now = Date.now()) {
   count.plus.click();
 }
 
+function ticketplusHasStock() {
+  return [...document.querySelectorAll('.seats-area > .v-expansion-panel')].some(panel => {
+    const header = panel.querySelector('.v-expansion-panel-header');
+    return header && !header.disabled && !ticketplusSoldOut(panel) && /熱賣中|剩餘\s*[1-9]\d*/.test(header.textContent);
+  }) || [...document.querySelectorAll('.count-button')].some(count => {
+    const row = count.closest('.row');
+    const controls = row && ticketplusCount(row);
+    return controls && !ticketplusSoldOut(row) && !controls.plus.disabled;
+  });
+}
+
+// Browsers require a real user gesture before audio can start.
+document.addEventListener('pointerdown', () => {
+  const Audio = globalThis.AudioContext;
+  if (!Audio) return;
+  try {
+    ticketplusAudio ??= new Audio();
+    if (ticketplusAudio.state === 'suspended') ticketplusAudio.resume().catch(() => {});
+  } catch (error) { console.warn('TikiTiki: 提示音暫時無法播放', error); }
+}, true);
+
+function ticketplusNotify() {
+  const stock = location.pathname.startsWith('/order/') && ticketplusHasStock();
+  if (!stock) { ticketplusStockAnnounced = false; return; }
+  if (ticketplusStockAnnounced || ticketplusAudio?.state !== 'running') return;
+  ticketplusStockAnnounced = true;
+  playTikitikiDing(ticketplusAudio);
+}
+
+function ticketplusNextAllowed() {
+  if (!location.pathname.startsWith('/order/') || !ticketplusSettings) return false;
+  if (!ticketplusSettings.TicketplusNextOnlySpecified) return true;
+  try {
+    const url = new URL(ticketplusSettings.TicketplusNextUrl.trim());
+    return url.origin === 'https://ticketplus.com.tw' && /^\/order\/[^/]+\/[^/]+\/?$/.test(url.pathname) &&
+      url.pathname.replace(/\/$/, '') === location.pathname.replace(/\/$/, '');
+  } catch { return false; }
+}
+
+function ticketplusNext() {
+  const allowed = ticketplusNextAllowed();
+  const status = document.getElementById('tikitikiNextStatus');
+  if (status) {
+    const text = allowed ? '自動下一步：適用此頁' : '自動下一步：此頁未啟用';
+    if (status.textContent !== text) status.textContent = text;
+  }
+  if (!allowed) return;
+  const run = ticketplusRun;
+  if (!ticketplusSettings?.TicketplusAutoSelect || !run.done || !run.selected || run.advanced) return;
+  const counts = [...document.querySelectorAll('.count-button')];
+  if (!counts.includes(run.selected) || Number(run.selected.children[1]?.textContent.trim()) <= 0) return;
+  const button = [...document.querySelectorAll('button')].find(button => button.textContent.trim() === '下一步');
+  if (!button || button.disabled || !button.getClientRects().length) return;
+  run.advanced = true;
+  button.click();
+}
+
+function ticketplusRefresh(now = Date.now()) {
+  const countdown = document.getElementById('tikitikiRefreshCountdown');
+  const show = text => { if (countdown && countdown.textContent !== text) countdown.textContent = text; };
+  if (!location.pathname.startsWith('/order/') || !ticketplusSettings?.TicketplusAutoSelect) {
+    ticketplusNextRefresh = 0;
+    show('自動更新已關閉');
+    return;
+  }
+  const selected = [...document.querySelectorAll('.count-button')]
+    .some(count => Number(count.children[1]?.textContent.trim()) > 0);
+  if (ticketplusRun.done || selected) {
+    ticketplusNextRefresh = 0;
+    show('自動更新已暫停');
+    return;
+  }
+  const available = ticketplusHasStock();
+  if (available) {
+    ticketplusNextRefresh = 0;
+    show('偵測到有票，暫停更新');
+    return;
+  }
+  const button = [...document.querySelectorAll('button')].find(button => /更新票數/.test(button.textContent));
+  if (!button || button.disabled) {
+    ticketplusNextRefresh = 0;
+    show('等待更新票數按鈕');
+    return;
+  }
+  if (!ticketplusNextRefresh) ticketplusNextRefresh = now + (4 + Math.floor(Math.random() * 5)) * 1000;
+  if (now >= ticketplusNextRefresh) {
+    ticketplusRun.refreshAt = now;
+    delete ticketplusRun.failed;
+    delete ticketplusRun.opened;
+    button.click();
+    ticketplusNextRefresh = now + (4 + Math.floor(Math.random() * 5)) * 1000;
+  }
+  show(`更新票數：${Math.ceil((ticketplusNextRefresh - now) / 1000)} 秒`);
+}
+
 chrome.storage.local.get(ticketplusDefaults).then(items => {
   ticketplusSettings = items;
   updateTicketplus();
@@ -206,10 +344,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
   for (const key of Object.keys(ticketplusDefaults)) {
     if (!changes[key]) continue;
     ticketplusSettings[key] = changes[key].newValue ?? ticketplusDefaults[key];
-    changed = true;
+    if (!['TicketplusSerialNumber', 'TicketplusNextOnlySpecified', 'TicketplusNextUrl'].includes(key)) changed = true;
   }
-  if (changed) ticketplusRun = {};
+  if (changed) {
+    ticketplusRun = {};
+    ticketplusNextRefresh = 0;
+  }
   updateTicketplus();
 });
-setInterval(updateTicketplus, 200);
+setInterval(() => {
+  updateTicketplus();
+  ticketplusNotify();
+  ticketplusNext();
+  ticketplusRefresh();
+}, 200);
 addClockWidget(undefined, 'TicketplusAutoSelect');

@@ -75,7 +75,8 @@
     {
       "matches" : [ "https://ticketplus.com.tw/*" ],
       "run_at": "document_idle",
-      "js" : [ "js/widget.js", "js/ticketplus/ticketplus.js" ]
+      "js" : [ "js/widget.js", "js/sound.js", "js/ticketplus/ticketplus.js" ],
+      "css": [ "css/ticketplus.css" ]
     }
   ],
   "manifest_version": 3
