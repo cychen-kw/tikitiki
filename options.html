@@ -254,10 +254,15 @@
       <h2 class="card-title"><span class="card-icon">⚡</span>自動點擊</h2>
       <label class="row"><input type="checkbox" id="TicketplusAutoSelect" class="option toggle-switch"><span>自動選區</span></label>
       <label class="row"><input type="checkbox" id="TicketplusIgnoreDisabledArea" class="option toggle-switch"><span>忽略身障區</span></label>
+      <label class="field-label" for="TicketplusRefreshMin">最小刷新秒數</label>
+      <input type="number" id="TicketplusRefreshMin" class="option" min="1" step="1" value="4">
+      <label class="field-label" for="TicketplusRefreshMax">最大刷新秒數</label>
+      <input type="number" id="TicketplusRefreshMax" class="option" min="1" step="1" value="8">
+      <p class="hint">最低 1 秒，每次從範圍內隨機選擇整數秒。兩者相同可固定間隔；最大值小於最小值時，以最小值為準。</p>
       <label class="field-label" for="TicketplusPriceInput">票價</label>
       <div class="tag-input-row"><div class="tag-input" id="TicketplusPriceBox"><input type="text" id="TicketplusPriceInput" placeholder="例如 5480，按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="TicketplusPriceClear">清空</button></div>
       <input type="hidden" id="TicketplusPrice">
-      <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空時依畫面順序選擇全區。開啟自動選區後，每隔隨機 4～8 秒更新票數，小工具顯示倒數；偵測到有票、已有選票或手動接管時暫停。略過已售完與剩餘不足區域；開啟「忽略身障區」時略過身障、身心障礙及輪椅區域。</p>
+      <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空時依畫面順序選擇全區。開啟自動選區後，依設定的秒數範圍隨機更新票數，小工具顯示倒數；偵測到有票、已有選票或手動接管時暫停。略過已售完與剩餘不足區域；開啟「忽略身障區」時略過身障、身心障礙及輪椅區域。</p>
     </section>
     <section class="card">
       <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>

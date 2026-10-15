@@ -138,5 +138,15 @@ vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options
   handlers.change({ target: { id: 'TicketplusNextOnlySpecified', type: 'checkbox', checked: false } });
   await vm.runInContext('saveQueue', context);
   assert.equal(JSON.stringify(writes.at(-1)), JSON.stringify({ TicketplusNextOnlySpecified: false }));
+  for (const [value, expected] of [['0', 1], ['3.8', 3], ['', 4], ['bad', 4], ['7', 7]]) {
+    const input = { id: 'TicketplusRefreshMin', type: 'number', value };
+    handlers.change({ target: input });
+    await vm.runInContext('saveQueue', context);
+    assert.equal(writes.at(-1).TicketplusRefreshMin, expected);
+    assert.equal(Object.keys(writes.at(-1)).length, 1);
+  }
+  element('TicketplusRefreshMax').type = 'number';
+  changed({ TicketplusRefreshMax: { newValue: 12 } }, 'local');
+  assert.equal(element('TicketplusRefreshMax').value, 12);
   console.log('Options autosave checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

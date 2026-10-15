@@ -5,7 +5,7 @@ const optionDefaults = {
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
     IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false,
-    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: ''
+    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8
 };
 let optionsReady = false;
 let statusTimer;
@@ -333,6 +333,11 @@ document.addEventListener('DOMContentLoaded', restore_options);
 document.querySelectorAll('main input, main button').forEach(input => { input.disabled = true; });
 document.addEventListener('change', event => {
     const input = event.target;
+    if (['TicketplusRefreshMin', 'TicketplusRefreshMax'].includes(input.id)) {
+        const value = Number(input.value);
+        input.value = Number.isFinite(value) && input.value !== '' ? Math.max(1, Math.floor(value)) : optionDefaults[input.id];
+        saveOption(input.id, Number(input.value));
+    }
     if (input.type === 'checkbox') saveOption(input.id, input.checked);
     if (input.type === 'radio' && input.checked) saveOption(input.name, input.value);
 });

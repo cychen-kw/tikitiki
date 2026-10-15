@@ -428,5 +428,23 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
   p.run();
   assert.equal(tones, 4, 'announce a new stock transition');
+  flat = [];
+  for (const [min, max, random, expected] of [[1, 3, 0, 1], [1, 3, 0.999, 3], [2, 2, 0.5, 2], [5, 2, 0.999, 5], [0, -2, 0, 1], ['bad', 'bad', 0, 4]]) {
+    p = await page({ TicketplusAutoSelect: true, TicketplusRefreshMin: min, TicketplusRefreshMax: max }, []);
+    p.resetRefresh();
+    p.refresh(1000, random);
+    assert.equal(p.countdown.textContent, `更新票數：${expected} 秒`);
+    p.refresh(1000 + expected * 1000 - 1, random);
+    assert.equal(p.refreshButton.clicks, 0);
+    p.refresh(1000 + expected * 1000, random);
+    assert.equal(p.refreshButton.clicks, 1);
+  }
+  p.change({ TicketplusRefreshMin: { newValue: 1 }, TicketplusRefreshMax: { newValue: 1 } }, 'local');
+  p.refresh(20000);
+  assert.equal(p.countdown.textContent, '更新票數：1 秒', 'range changes restart countdown');
+  p.click({ isTrusted: true, target: { closest: sel => sel === '.seats-area, .count-button' ? {} : null } });
+  p.change({ TicketplusRefreshMin: { newValue: 2 } }, 'local');
+  p.refresh(30000);
+  assert.equal(p.countdown.textContent, '自動更新已暫停', 'range changes preserve manual takeover');
   console.log('ticketplus selection checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

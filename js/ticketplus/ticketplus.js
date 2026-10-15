@@ -1,5 +1,5 @@
 // Select tickets one click at a time, then advance once to the site's next step.
-const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '' };
+const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8 };
 let ticketplusSettings;
 let ticketplusScope = { key: '', ids: [] };
 let ticketplusRun = {};
@@ -321,13 +321,20 @@ function ticketplusRefresh(now = Date.now()) {
     show('等待更新票數按鈕');
     return;
   }
-  if (!ticketplusNextRefresh) ticketplusNextRefresh = now + (4 + Math.floor(Math.random() * 5)) * 1000;
+  const seconds = (key, fallback) => {
+    const value = Number(ticketplusSettings[key]);
+    return Number.isFinite(value) ? Math.max(1, Math.floor(value)) : fallback;
+  };
+  const min = seconds('TicketplusRefreshMin', 4);
+  const max = Math.max(min, seconds('TicketplusRefreshMax', 8));
+  const nextRefresh = () => now + (min + Math.floor(Math.random() * (max - min + 1))) * 1000;
+  if (!ticketplusNextRefresh) ticketplusNextRefresh = nextRefresh();
   if (now >= ticketplusNextRefresh) {
     ticketplusRun.refreshAt = now;
     delete ticketplusRun.failed;
     delete ticketplusRun.opened;
     button.click();
-    ticketplusNextRefresh = now + (4 + Math.floor(Math.random() * 5)) * 1000;
+    ticketplusNextRefresh = nextRefresh();
   }
   show(`更新票數：${Math.ceil((ticketplusNextRefresh - now) / 1000)} 秒`);
 }
@@ -344,6 +351,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
   for (const key of Object.keys(ticketplusDefaults)) {
     if (!changes[key]) continue;
     ticketplusSettings[key] = changes[key].newValue ?? ticketplusDefaults[key];
+    if (key === 'TicketplusRefreshMin' || key === 'TicketplusRefreshMax') {
+      ticketplusNextRefresh = 0;
+      continue;
+    }
     if (!['TicketplusSerialNumber', 'TicketplusNextOnlySpecified', 'TicketplusNextUrl'].includes(key)) changed = true;
   }
   if (changed) {
