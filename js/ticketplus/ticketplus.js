@@ -1,5 +1,5 @@
 // Select tickets one click at a time, then advance once to the site's next step.
-const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8 };
+const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50 };
 let ticketplusSettings;
 let ticketplusScope = { key: '', ids: [] };
 let ticketplusRun = {};
@@ -263,7 +263,7 @@ function ticketplusNotify() {
   if (!stock) { ticketplusStockAnnounced = false; return; }
   if (ticketplusStockAnnounced || ticketplusAudio?.state !== 'running') return;
   ticketplusStockAnnounced = true;
-  playTikitikiDing(ticketplusAudio);
+  playTikitikiDing(ticketplusAudio, ticketplusSettings.TicketplusSoundVolume);
 }
 
 function ticketplusNextAllowed() {
@@ -355,7 +355,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
       ticketplusNextRefresh = 0;
       continue;
     }
-    if (!['TicketplusSerialNumber', 'TicketplusNextOnlySpecified', 'TicketplusNextUrl'].includes(key)) changed = true;
+    if (!['TicketplusSerialNumber', 'TicketplusNextOnlySpecified', 'TicketplusNextUrl', 'TicketplusSoundVolume'].includes(key)) changed = true;
   }
   if (changed) {
     ticketplusRun = {};

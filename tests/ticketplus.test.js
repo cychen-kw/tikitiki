@@ -428,6 +428,18 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
   p.run();
   assert.equal(tones, 4, 'announce a new stock transition');
+  p.change({ TicketplusSoundVolume: { newValue: 25 } }, 'local');
+  list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 0 NT.800';
+  p.run();
+  list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
+  p.run();
+  assert.equal(peak, 0.00875, 'stock notification uses the updated volume');
+  p.change({ TicketplusSoundVolume: { newValue: 0 } }, 'local');
+  list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 0 NT.800';
+  p.run();
+  list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
+  p.run();
+  assert.equal(tones, 6, 'muted stock notification creates no tones');
   flat = [];
   for (const [min, max, random, expected] of [[1, 3, 0, 1], [1, 3, 0.999, 3], [2, 2, 0.5, 2], [5, 2, 0.999, 5], [0, -2, 0, 1], ['bad', 'bad', 0, 4]]) {
     p = await page({ TicketplusAutoSelect: true, TicketplusRefreshMin: min, TicketplusRefreshMax: max }, []);

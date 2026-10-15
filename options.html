@@ -235,8 +235,10 @@
     </section>
     <section class="card">
       <h2 class="card-title"><span class="card-icon">🔔</span>有票提示音</h2>
+      <label class="field-label" for="TicketplusSoundVolume">提示音音量 <output id="TicketplusSoundVolumeValue" for="TicketplusSoundVolume">50%</output></label>
+      <input type="range" id="TicketplusSoundVolume" min="0" max="100" step="1" value="50" aria-describedby="TicketplusSoundHint">
       <button type="button" class="clear-btn" id="TicketplusSoundPreview">試聽叮叮</button>
-      <p class="hint">與購票頁相同的小聲雙音提示，實際音量依系統音量而定。</p>
+      <p class="hint" id="TicketplusSoundHint">0% 為靜音；試聽與購票頁使用相同音量。最高維持小聲提示並淡入淡出，實際音量仍受系統與耳機、喇叭影響，請從低音量試聽。</p>
       <p class="hint" id="TicketplusSoundStatus" role="status"></p>
     </section>
     <section class="card">

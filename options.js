@@ -5,7 +5,7 @@ const optionDefaults = {
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
     IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false,
-    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8
+    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50
 };
 let optionsReady = false;
 let statusTimer;
@@ -25,6 +25,11 @@ function applyOption(key, value) {
         if (optionsReady && input.type === 'text' && document.activeElement === input) return;
         if (input.type === 'checkbox') input.checked = value;
         else input.value = value;
+        if (key === 'TicketplusSoundVolume') {
+            const level = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 50;
+            input.value = level;
+            document.getElementById('TicketplusSoundVolumeValue').textContent = level + '%';
+        }
     }
 }
 
@@ -343,6 +348,12 @@ document.addEventListener('change', event => {
 });
 document.addEventListener('input', event => {
     const input = event.target;
+    if (input.id === 'TicketplusSoundVolume') {
+        const value = Number(input.value);
+        const level = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 50;
+        applyOption(input.id, level);
+        saveOption(input.id, level);
+    }
     if (input.type === 'text' && !event.isComposing) saveOption(input.id, input.value);
 });
 document.addEventListener('compositionend', event => {
@@ -435,7 +446,7 @@ document.getElementById('TicketplusSoundPreview').addEventListener('click', asyn
         previewAudio ??= new AudioContext();
         if (previewAudio.state === 'suspended') await previewAudio.resume();
         if (previewAudio.state !== 'running') throw new Error('Audio is not running');
-        playTikitikiDing(previewAudio);
+        playTikitikiDing(previewAudio, Number(document.getElementById('TicketplusSoundVolume').value));
         status.textContent = '已播放提示音';
     } catch (error) {
         status.textContent = '無法播放提示音，請檢查瀏覽器與系統音量後重試。';
