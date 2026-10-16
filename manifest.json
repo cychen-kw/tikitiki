@@ -24,6 +24,12 @@
   "options_page": "options.html",
   "content_scripts" : [
     {
+      "matches": [ "https://www.myvideo.net.tw/activity/*" ],
+      "run_at": "document_idle",
+      "world": "MAIN",
+      "js": [ "js/myvideo/activity.js" ]
+    },
+    {
       "matches": [
         "https://orders.ibon.com.tw/application/UTK02/UTK0201_000.aspx*",
         "https://orders.ibon.com.tw/application/UTK02/UTK0201_001.aspx*"
