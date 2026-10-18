@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T00:00:00Z",
+  "title": "Design System: TikiTiki 有票噴霧",
+  "extensions": {
+    "shadows": [
+      { "name": "widget", "value": "0 4px 16px rgba(0,0,0,.12)", "purpose": "懸浮小工具與網站內容分層" },
+      { "name": "toast", "value": "0 2px 8px rgba(0,0,0,.15)", "purpose": "設定已儲存提示" },
+      { "name": "knob", "value": "0 1px 2px rgba(0,0,0,.3)", "purpose": "toggle 白色圓鈕" }
+    ],
+    "motion": [
+      { "name": "state", "value": ".15s", "purpose": "toggle、選項、邊框狀態切換" },
+      { "name": "toast-fade", "value": "opacity .2s", "purpose": "toast 出現與消失" }
+    ]
+  },
+  "components": [
+    { "name": "Card", "kind": "card", "refersTo": "card", "description": "平台設定卡片，頂端 3px 平台色條",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">區域設定</h3><p>內容</p></div>",
+      "css": ".ds-card{background:#fff;border:1px solid #e2e2e2;border-top:3px solid #1a56b0;border-radius:12px;padding:18px 20px;font-size:14px;color:#222}.ds-card-title{margin:0 0 14px;font-size:15px;font-weight:700;color:#1a56b0}" },
+    { "name": "Radio Pill", "kind": "chip", "refersTo": "radio-pill", "description": "單選膠囊，選中為 tint 底",
+      "html": "<label class=\"ds-pill\"><input type=\"radio\" name=\"n\" checked> 2 張</label><label class=\"ds-pill\"><input type=\"radio\" name=\"n\"> 4 張</label>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid #e2e2e2;border-radius:999px;font-size:13px;cursor:pointer;transition:border-color .15s,background .15s}.ds-pill:has(input:checked){border-color:#1a56b0;background:#dbe7fa;color:#123f85;font-weight:600}.ds-pill input{accent-color:#1a56b0}" },
+    { "name": "Tag", "kind": "chip", "refersTo": "tag", "description": "關鍵字泡泡，可拖曳排序",
+      "html": "<span class=\"ds-tag\">搖滾區<button class=\"ds-tag-x\">×</button></span>",
+      "css": ".ds-tag{display:inline-flex;align-items:center;gap:4px;background:#dbe7fa;color:#123f85;border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}.ds-tag-x{border:0;background:transparent;color:inherit;font-weight:bold;padding:2px 6px;border-radius:50%;cursor:pointer}.ds-tag-x:hover{background:rgba(0,0,0,.1)}" },
+    { "name": "Input", "kind": "input", "refersTo": "input", "description": "文字欄位，聚焦換平台色邊框",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"關鍵字\">",
+      "css": ".ds-input{padding:8px 10px;border:1px solid #e2e2e2;border-radius:8px;font-size:14px;background:#fff}.ds-input:focus{outline:none;border-color:#1a56b0}" },
+    { "name": "Secondary Button", "kind": "button", "refersTo": "button-secondary", "description": "清除、移除等次要操作",
+      "html": "<button class=\"ds-btn\">清除</button>",
+      "css": ".ds-btn{background:#fff;border:1px solid #e2e2e2;border-radius:8px;padding:7px 10px;font-size:13px;color:#767676;cursor:pointer}.ds-btn:hover,.ds-btn:focus-visible{border-color:#123f85;color:#123f85}" },
+    { "name": "Floating Widget", "kind": "custom", "refersTo": "widget", "description": "購票頁懸浮小工具",
+      "html": "<div class=\"ds-widget\"><div class=\"ds-w-brand\">🎟️ tikitiki</div><div class=\"ds-w-clock\">12:00:00</div><div class=\"ds-w-status\">自動選區 開啟</div></div>",
+      "css": ".ds-widget{display:inline-block;background:#fff;border:1px solid #e2e2e2;border-radius:12px;padding:10px 16px;min-width:120px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12)}.ds-w-brand{font-size:10px;letter-spacing:.5px;color:#d0333c;font-weight:700}.ds-w-clock{font-size:20px;font-weight:700;color:#222;font-variant-numeric:tabular-nums}.ds-w-status{margin-top:6px;padding-top:6px;border-top:1px solid #f0f0f0;font-size:12px;color:#555}" }
+  ],
+  "narrative": {
+    "northStar": "售票亭的控制台",
+    "keyCharacteristics": ["單欄窄版（最寬 480px），灰底白卡片", "平台色以 3px 卡片頂條、分頁底線、選中狀態出現，不大面積鋪色", "只用系統字型，數字使用等寬數字（tabular-nums）", "圓角分三級：8px 欄位、12px 容器、膠囊形的選項與標籤"],
+    "rules": [
+      { "name": "The Platform Owns the Accent Rule", "section": "colors", "body": "分頁內的元件只讀 --accent、--accent-dark、--accent-tint，不寫死平台色；新增平台時，只需替該分頁補上三個變數。" },
+      { "name": "The Tint-Not-Fill Rule", "section": "colors", "body": "選中狀態用 tint 當背景、deep 當文字，不用飽和平台色鋪滿元件。實心的飽和色只出現在 toggle 開啟和分頁小圓 icon。" },
+      { "name": "The Steady Digits Rule", "section": "typography", "body": "時間、倒數、張數等會變動的數字一律使用 tabular-nums。" },
+      { "name": "The Only-Floaters-Cast-Shadows Rule", "section": "elevation", "body": "只有浮在網頁上的東西（小工具、toast）可以有陰影；卡片和欄位維持平面。" }
+    ],
+    "dos": ["透過 --accent 系列變數套用平台色，讓同一個元件在四個平台分頁各自正確。", "選中狀態用 tint 背景加 deep 文字。", "時間和數字使用 tabular-nums。", "保留 🎟️ logo 的搖晃與泡泡小互動，但只放在品牌區。"],
+    "donts": ["給卡片或欄位加陰影；陰影只屬於小工具和 toast。", "加入網頁字型或額外 UI 函式庫。", "用品牌紅表示某個平台；品牌紅只代表 TikiTiki 本身和小工具。", "在小工具放開賣當下用不到的資訊。"]
+  }
+}

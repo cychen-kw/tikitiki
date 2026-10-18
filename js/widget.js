@@ -20,7 +20,8 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
         "width:14px;height:14px;border-radius:50%;background:#fff;" +
         "box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s;}" +
         "#tikitikiAutoClickToggle:checked{background:#d0333c;}" +
-        "#tikitikiAutoClickToggle:checked::before{transform:translateX(14px);}";
+        "#tikitikiAutoClickToggle:checked::before{transform:translateX(14px);}" +
+        "#tikitikiWidget button:focus-visible,#tikitikiAutoClickToggle:focus-visible{outline:2px solid #d0333c;outline-offset:2px;}";
       document.head.appendChild(style);
     }
 
@@ -33,11 +34,11 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
       "padding:10px 16px 10px;min-width:120px;text-align:center;" +
       "box-shadow:0 4px 16px rgba(0,0,0,.12);transition:padding .15s,min-width .15s;";
     let btnStyle = "position:absolute;top:2px;width:22px;height:22px;display:flex;" +
-      "align-items:center;justify-content:center;cursor:pointer;color:#999;" +
-      "font-size:15px;line-height:1;border-radius:50%;";
+      "align-items:center;justify-content:center;cursor:pointer;color:#767676;" +
+      "font:15px/1 inherit;border:0;padding:0;margin:0;background:transparent;border-radius:50%;";
     widget.innerHTML =
-      '<span id="tikitikiMinimize" title="縮小" style="' + btnStyle + 'right:2px;">–</span>' +
-      '<span id="tikitikiSettings" title="開啟設定頁" style="' + btnStyle + 'left:2px;">⚙️</span>' +
+      '<button type="button" id="tikitikiMinimize" title="縮小" aria-label="縮小" style="' + btnStyle + 'right:2px;">–</button>' +
+      '<button type="button" id="tikitikiSettings" title="開啟設定頁" aria-label="開啟設定頁" style="' + btnStyle + 'left:2px;">⚙️</button>' +
       '<div id="tikitikiBrand" style="font-size:10px;letter-spacing:.5px;color:#d0333c;' +
         'font-weight:700;margin-bottom:2px;">🎟️ tikitiki</div>' +
       '<div id="tikitikiClock" style="font-size:20px;font-weight:700;color:#222;' +
@@ -136,6 +137,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
       priority.style.display = minimized ? "none" : "";
       minimizeBtn.textContent = minimized ? "▢" : "–";
       minimizeBtn.title = minimized ? "放大" : "縮小";
+      minimizeBtn.setAttribute("aria-label", minimizeBtn.title);
       widget.style.padding = minimized ? "6px 30px 6px 12px" : "10px 16px 10px";
       widget.style.minWidth = minimized ? "0" : "120px";
     });

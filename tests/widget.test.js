@@ -11,6 +11,7 @@ const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
     function element(id) {
       if (!elements.has(id)) elements.set(id, {
         style: {}, addEventListener(type, handler) { this[type] = handler; },
+        setAttribute(name, value) { this[name] = value; },
         querySelector: element,
         getBoundingClientRect() { return { left: parseFloat(this.style.left) || 600, top: parseFloat(this.style.top) || 14, width: 180, height: 120 }; },
         setPointerCapture(id) { this.capture = id; },
@@ -72,6 +73,7 @@ const source = fs.readFileSync(path.join(__dirname, '../js/widget.js'), 'utf8');
     tick();
     assert.match(element('#tikitikiClock').textContent, /\d{2}:\d{2}:\d{2}/);
     element('#tikitikiMinimize').click();
+    assert.equal(element('#tikitikiMinimize')['aria-label'], '放大');
     assert.equal(element('#tikitikiToggleRow').style.display, 'none');
     assert.equal(element('#tikitikiPriority').style.display, 'none');
     if (key === 'AutoClickArea') assert.equal(warning.style.display, 'block', 'login warning remains visible when minimized');
