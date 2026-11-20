@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-18T00:00:00Z",
+  "generatedAt": "2026-11-20T10:54:14Z",
   "title": "Design System: TikiTiki 有票噴霧",
   "extensions": {
     "shadows": [
@@ -22,19 +22,20 @@
       "css": ".ds-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid #e2e2e2;border-radius:999px;font-size:13px;cursor:pointer;transition:border-color .15s,background .15s}.ds-pill:has(input:checked){border-color:#1a56b0;background:#dbe7fa;color:#123f85;font-weight:600}.ds-pill input{accent-color:#1a56b0}" },
     { "name": "Tag", "kind": "chip", "refersTo": "tag", "description": "關鍵字泡泡，可拖曳排序",
       "html": "<span class=\"ds-tag\">搖滾區<button class=\"ds-tag-x\">×</button></span>",
-      "css": ".ds-tag{display:inline-flex;align-items:center;gap:4px;background:#dbe7fa;color:#123f85;border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}.ds-tag-x{border:0;background:transparent;color:inherit;font-weight:bold;padding:2px 6px;border-radius:50%;cursor:pointer}.ds-tag-x:hover{background:rgba(0,0,0,.1)}" },
+      "css": ".ds-tag{display:inline-flex;align-items:center;gap:4px;background:#dbe7fa;color:#123f85;border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}.ds-tag-x{border:0;background:transparent;color:inherit;font-weight:bold;padding:2px 6px;border-radius:50%;cursor:pointer}.ds-tag-x:focus-visible{outline:2px solid #1a56b0;outline-offset:2px}.ds-tag-x:hover{background:rgba(0,0,0,.1)}" },
     { "name": "Input", "kind": "input", "refersTo": "input", "description": "文字欄位，聚焦換平台色邊框",
       "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"關鍵字\">",
       "css": ".ds-input{padding:8px 10px;border:1px solid #e2e2e2;border-radius:8px;font-size:14px;background:#fff}.ds-input:focus{outline:none;border-color:#1a56b0}" },
     { "name": "Secondary Button", "kind": "button", "refersTo": "button-secondary", "description": "清除、移除等次要操作",
       "html": "<button class=\"ds-btn\">清除</button>",
-      "css": ".ds-btn{background:#fff;border:1px solid #e2e2e2;border-radius:8px;padding:7px 10px;font-size:13px;color:#767676;cursor:pointer}.ds-btn:hover,.ds-btn:focus-visible{border-color:#123f85;color:#123f85}" },
+      "css": ".ds-btn{background:#fff;border:1px solid #e2e2e2;border-radius:8px;padding:7px 10px;font-size:13px;color:#767676;cursor:pointer}.ds-btn:focus-visible{outline:2px solid #1a56b0;outline-offset:2px}.ds-btn:hover,.ds-btn:focus-visible{border-color:#123f85;color:#123f85}" },
     { "name": "Floating Widget", "kind": "custom", "refersTo": "widget", "description": "購票頁懸浮小工具",
       "html": "<div class=\"ds-widget\"><div class=\"ds-w-brand\">🎟️ tikitiki</div><div class=\"ds-w-clock\">12:00:00</div><div class=\"ds-w-status\">自動選區 開啟</div></div>",
       "css": ".ds-widget{display:inline-block;background:#fff;border:1px solid #e2e2e2;border-radius:12px;padding:10px 16px;min-width:120px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12)}.ds-w-brand{font-size:10px;letter-spacing:.5px;color:#d0333c;font-weight:700}.ds-w-clock{font-size:20px;font-weight:700;color:#222;font-variant-numeric:tabular-nums}.ds-w-status{margin-top:6px;padding-top:6px;border-top:1px solid #f0f0f0;font-size:12px;color:#555}" }
   ],
   "narrative": {
     "northStar": "售票亭的控制台",
+    "overview": "TikiTiki 像一座整齊的售票亭：灰色亭身（#f2f3f5）上排著白色卡片，每張卡片頂端有一道平台色條，標出它屬於哪個售票平台。設定頁是開賣前慢慢調整的操作面板，懸浮小工具是開賣當下的小型儀表，只顯示時鐘、開關和優先規則。\n\n視覺俐落克制：細邊框、近乎平面，色彩只用來標示平台和狀態。每個平台分頁會把 `--accent` 換成該平台的顏色，所以同一套元件在拓元是藍色、在 KKTIX 是綠色。品牌紅只留給品牌本身與小工具開關。唯一的玩心藏在 🎟️ logo：點擊後會搖晃，並噴出泡泡。",
     "keyCharacteristics": ["單欄窄版（最寬 480px），灰底白卡片", "平台色以 3px 卡片頂條、分頁底線、選中狀態出現，不大面積鋪色", "只用系統字型，數字使用等寬數字（tabular-nums）", "圓角分三級：8px 欄位、12px 容器、膠囊形的選項與標籤"],
     "rules": [
       { "name": "The Platform Owns the Accent Rule", "section": "colors", "body": "分頁內的元件只讀 --accent、--accent-dark、--accent-tint，不寫死平台色；新增平台時，只需替該分頁補上三個變數。" },

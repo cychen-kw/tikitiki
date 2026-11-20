@@ -252,10 +252,11 @@ async function page(rows, settings = {}, codeInputs = []) {
     KktixTicketNumber: '3', TicketNumber: '4'
   };
   function element() {
-    return { children: [], attributes: {},
+    return { children: [], attributes: {}, dataset: {},
       appendChild(child) { this.children.push(child); },
       replaceChildren() { this.children = []; },
       setAttribute(key, value) { this.attributes[key] = value; },
+      focus() { options.document.activeElement = this; },
       addEventListener(type, handler) { this[type] = handler; }
     };
   }
@@ -264,13 +265,17 @@ async function page(rows, settings = {}, codeInputs = []) {
     if (!elements.has(id)) elements.set(id, element());
     return elements.get(id);
   };
+  let onOptionsChanged;
   const options = vm.createContext({
     console,
     document: { getElementById: getElement, createElement: element,
       querySelectorAll: () => [], addEventListener() {} },
     chrome: { runtime: { getManifest: () => ({ version: 'test' }) }, storage: {
-      local: { get: async () => ({ ...data }), set: async updates => Object.assign(data, updates) },
-      onChanged: { addListener() {} }
+      local: { get: async () => ({ ...data }), set: async updates => {
+        Object.assign(data, updates);
+        onOptionsChanged(updates, 'local');
+      } },
+      onChanged: { addListener(fn) { onOptionsChanged = fn; } }
     } }
   });
   vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options.js'), 'utf8'), options);
@@ -291,6 +296,11 @@ async function page(rows, settings = {}, codeInputs = []) {
   list.children[2].children[0].children[0].dragstart(drag);
   await list.children[1].drop(drag);
   assert.deepEqual(Array.from(data['KktixTicketScope:a']), ['ticket_1', 'ticket_2']);
+  const handle = list.children[1].children[0].children[0];
+  handle.focus();
+  await handle.keydown({ altKey: true, key: 'ArrowDown', preventDefault() {} });
+  assert.equal(options.document.activeElement, list.children[2].children[0].children[0], 'focus follows the moved ticket');
+  await options.document.activeElement.keydown({ altKey: true, key: 'ArrowUp', preventDefault() {} });
   await list.children[1].children[2].children[0].click();
   assert.deepEqual(Array.from(data['KktixTicketScope:a']), ['ticket_2']);
   assert.deepEqual(data['KktixTicketScope:b'], ['ticket_1'], 'same ID in another event is preserved');

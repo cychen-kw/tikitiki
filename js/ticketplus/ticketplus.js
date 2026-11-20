@@ -1,5 +1,5 @@
 // Select tickets one click at a time, then advance once to the site's next step.
-const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50 };
+const ticketplusDefaults = { TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusPriceFallback: false, TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50 };
 let ticketplusSettings;
 let ticketplusScope = { key: '', ids: [] };
 let ticketplusRun = {};
@@ -53,6 +53,10 @@ function ticketplusName(item) {
 function ticketplusId(row) {
   const panel = row.closest('.seats-area > .v-expansion-panel');
   return panel ? ticketplusName(panel) + ' / ' + ticketplusName(row) : ticketplusName(row);
+}
+
+function ticketplusIgnoresArea(text, name) {
+  return ticketplusSettings?.TicketplusIgnoreDisabledArea && ticketplusDisabledArea.test(text + ' ' + name);
 }
 
 function ticketplusSoldOut(item) {
@@ -162,11 +166,10 @@ function updateTicketplus(now = Date.now()) {
     else if (now - run.refreshAt > 60000) delete run.refreshAt;
   }
   if (!ticketplusSettings?.TicketplusAutoSelect || run.done) return;
-  // Added tickets take precedence; without any, fall back to the price list.
   const scoped = ticketplusScope.ids.length > 0;
   const panels = [...document.querySelectorAll('.seats-area > .v-expansion-panel')];
-  let prefs = scoped ? ticketplusScope.ids :
-    String(ticketplusSettings.TicketplusPrice).split(',').map(Number).filter(n => Number.isInteger(n) && n > 0);
+  const prices = String(ticketplusSettings.TicketplusPrice).split(',').map(Number).filter(n => Number.isInteger(n) && n > 0);
+  let prefs = scoped ? [...ticketplusScope.ids, ...(ticketplusSettings.TicketplusPriceFallback ? prices : [])] : prices;
   const unrestricted = !scoped && !String(ticketplusSettings.TicketplusPrice).trim();
   // Preserve page order even when a lower area is already open.
   if (unrestricted) prefs = panels.length ? panels.map(ticketplusName) : [null];
@@ -174,22 +177,37 @@ function updateTicketplus(now = Date.now()) {
   if (!prefs.length || !Number.isInteger(target) || target < 0 || target > 4) return;
   run.failed ??= new Set();
 
-  const matches = (text, name, want) => !/售完|暫無票券|剩餘\s*0(?!\d)/.test(text) &&
-    !(ticketplusSettings.TicketplusIgnoreDisabledArea && ticketplusDisabledArea.test(text + ' ' + name)) &&
+  const matches = (text, name, want, byTicket) => !/售完|暫無票券|剩餘\s*0(?!\d)/.test(text) &&
+    !ticketplusIgnoresArea(text, name) &&
     !(target > 0 && Number(text.match(/剩餘\s*(\d+)/)?.[1] ?? Infinity) < target) &&
-    (scoped ? name === want : unrestricted ? want === null || name === want || name.startsWith(want + ' / ') : ticketplusPrices(text).includes(want));
+    (byTicket ? name === want : unrestricted ? want === null || name === want || name.startsWith(want + ' / ') : ticketplusPrices(text).includes(want));
   // Ticket-type pages list every row with its own count button; area pages only render
   // the count buttons of the opened area. Sold-out rows have no count button.
   const rows = [...document.querySelectorAll('.count-button')].map(count => count.closest('.row')).filter(Boolean);
   let row;
+  let byTicket;
   for (const want of prefs) {
-    row = rows.find(row => !run.failed.has(row.closest('.v-expansion-panel') || row) && matches(row.textContent, ticketplusId(row), want));
+    byTicket = scoped && typeof want === 'string';
+    row = rows.find(row => !run.failed.has(row) && !run.failed.has(row.closest('.v-expansion-panel')) &&
+      matches(row.textContent, ticketplusId(row), want, byTicket));
     if (row) break;
+    if (byTicket && run.failed.has(want)) continue;
     const panel = panels.find(panel => {
       const header = panel.querySelector('.v-expansion-panel-header');
       // An added ticket inside an area first needs that area opened.
-      const name = scoped && String(want).startsWith(ticketplusName(panel) + ' / ') ? want : ticketplusName(panel);
-      return header && !header.disabled && !run.failed.has(panel) && matches(header.textContent, name, want);
+      const name = byTicket && want.startsWith(ticketplusName(panel) + ' / ') ? want : ticketplusName(panel);
+      if (!header || header.disabled || run.failed.has(panel) || !matches(header.textContent, name, want, byTicket)) return false;
+      if (run.checkedPrices?.get(panel)?.has(want)) return false;
+      const loaded = panel.classList.contains('v-expansion-panel--active') &&
+        (panel.querySelector('.ticket-price') || rows.some(row => row.closest('.v-expansion-panel') === panel));
+      if (!loaded || (!byTicket && !(scoped && ticketplusSettings.TicketplusPriceFallback))) return true;
+      if (byTicket) run.failed.add(want);
+      else {
+        run.checkedPrices ??= new Map();
+        if (!run.checkedPrices.has(panel)) run.checkedPrices.set(panel, new Set());
+        run.checkedPrices.get(panel).add(want);
+      }
+      return false;
     });
     if (!panel) continue;
     // Opening an area resets the counts in the previously opened one.
@@ -229,7 +247,7 @@ function updateTicketplus(now = Date.now()) {
     }
     // Not enough tickets here: clear this row and try the next match.
     for (let i = 0; i < count.value; i++) count.minus.click();
-    run.failed.add(row.closest('.v-expansion-panel') || row);
+    run.failed.add(byTicket ? row : row.closest('.v-expansion-panel') || row);
     return;
   }
   run.before = count.value;
@@ -240,11 +258,13 @@ function updateTicketplus(now = Date.now()) {
 function ticketplusHasStock() {
   return [...document.querySelectorAll('.seats-area > .v-expansion-panel')].some(panel => {
     const header = panel.querySelector('.v-expansion-panel-header');
-    return header && !header.disabled && !ticketplusSoldOut(panel) && /熱賣中|剩餘\s*[1-9]\d*/.test(header.textContent);
+    return header && !header.disabled && !ticketplusIgnoresArea(header.textContent, ticketplusName(panel)) &&
+      !ticketplusSoldOut(panel) && /熱賣中|剩餘\s*[1-9]\d*/.test(header.textContent);
   }) || [...document.querySelectorAll('.count-button')].some(count => {
     const row = count.closest('.row');
     const controls = row && ticketplusCount(row);
-    return controls && !ticketplusSoldOut(row) && !controls.plus.disabled;
+    return controls && !ticketplusIgnoresArea(row.textContent, ticketplusId(row)) &&
+      !ticketplusSoldOut(row) && !controls.plus.disabled;
   });
 }
 
@@ -274,6 +294,20 @@ function ticketplusNextAllowed() {
     return url.origin === 'https://ticketplus.com.tw' && /^\/order\/[^/]+\/[^/]+\/?$/.test(url.pathname) &&
       url.pathname.replace(/\/$/, '') === location.pathname.replace(/\/$/, '');
   } catch { return false; }
+}
+
+function ticketplusDismissPurchaseFailure() {
+  if (!location.pathname.startsWith('/order/')) return false;
+  for (const dialog of document.querySelectorAll('.v-dialog--active, [role="dialog"]')) {
+    if (!/^購票失敗\s*您選擇的票種已售完或本活動有限制購票總張數/.test(dialog.textContent.trim())) continue;
+    const button = [...dialog.querySelectorAll('button')].find(button =>
+      button.textContent.trim() === '我知道了' && !button.disabled &&
+      button.checkVisibility({ visibilityProperty: true }));
+    if (!button) continue;
+    button.click();
+    return true;
+  }
+  return false;
 }
 
 function ticketplusNext() {
@@ -332,6 +366,7 @@ function ticketplusRefresh(now = Date.now()) {
   if (now >= ticketplusNextRefresh) {
     ticketplusRun.refreshAt = now;
     delete ticketplusRun.failed;
+    delete ticketplusRun.checkedPrices;
     delete ticketplusRun.opened;
     button.click();
     ticketplusNextRefresh = nextRefresh();
@@ -364,6 +399,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   updateTicketplus();
 });
 setInterval(() => {
+  if (ticketplusDismissPurchaseFailure()) return;
   updateTicketplus();
   ticketplusNotify();
   ticketplusNext();

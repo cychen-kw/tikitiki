@@ -69,12 +69,14 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   math.random = () => random;
   const countdown = { textContent: '' };
   const nextStatus = { textContent: '' };
+  const dialogs = [];
   const nextButton = { textContent: '下一步', disabled: false, clicks: 0, getClientRects: () => [1], click() { this.clicks++; } };
   const refreshButton = { textContent: '更新票數', disabled: false, clicks: 0, click() { this.clicks++; } };
   const context = vm.createContext({ console, Date, Event, AudioContext, URL, Math: math,
     location: { pathname: '/order/abc/def', href: 'https://ticketplus.com.tw/order/abc/def' },
     document: { activeElement: focusedInput, getElementById: id => id === 'tikitikiNextStatus' ? nextStatus : countdown, title: '票區一覽 | 測試活動 | Ticket Plus遠大售票系統',
-      querySelectorAll: sel => sel === 'input[placeholder*="購票序號"]' ? serialInputs : sel === 'button' ? [refreshButton, nextButton] : sel === '.count-button' ? [...panels.filter(p => p.active).flatMap(p => p.rows), ...flat].map(r => r.count) :
+      querySelectorAll: sel => sel === '.v-dialog--active, [role="dialog"]' ? dialogs :
+        sel === 'input[placeholder*="購票序號"]' ? serialInputs : sel === 'button' ? [refreshButton, nextButton] : sel === '.count-button' ? [...panels.filter(p => p.active).flatMap(p => p.rows), ...flat].map(r => r.count) :
         sel === '.seats-area > .v-expansion-panel' ? panels :
         sel === '.seats-area .ticket-price' ? panels.filter(p => p.active).flatMap(p => p.rows).map(r => r.ticketPrice) : flat,
       createElement: () => ({ style: {}, setAttribute() {}, addEventListener(type, fn) { this.onclick = fn; } }),
@@ -95,12 +97,31 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   await flush();
   const run = (n = 10) => { for (let i = 0; i < n; i++) tick(); };
   const press = async toggle => { await toggle.onclick({ preventDefault() {}, stopPropagation() {} }); };
-  return { run, change, click, stored, press, countdown, nextStatus, refreshButton, nextButton, unlockAudio: () => pointerdown(), input: event => inputHandler(event),
+  return { run, change, click, stored, press, countdown, nextStatus, refreshButton, nextButton, dialogs, unlockAudio: () => pointerdown(), input: event => inputHandler(event),
     refresh(now, value = 0) { random = value; context.ticketplusRefresh(now); },
     resetRefresh() { vm.runInContext("ticketplusNextRefresh = 0", context); } };
 }
 
 (async () => {
+  const failurePage = await page({ TicketplusAutoSelect: false }, []);
+  let visible = false;
+  let dismissals = 0;
+  const confirm = { textContent: '我知道了', checkVisibility: () => visible,
+    click() { dismissals++; visible = false; } };
+  const failure = { textContent: '購票失敗\n您選擇的票種已售完或本活動有限制購票總張數，請詳閱注意事項',
+    querySelectorAll: () => [confirm] };
+  failurePage.dialogs.push({ ...failure, textContent: '活動注意事項' });
+  visible = true;
+  failurePage.run(1);
+  assert.equal(dismissals, 0, 'unrelated dialogs are left open');
+  visible = false;
+  failurePage.dialogs.push(failure);
+  failurePage.run(1);
+  assert.equal(dismissals, 0, 'hidden confirmation buttons are ignored');
+  visible = true;
+  failurePage.run(2);
+  assert.equal(dismissals, 1, 'the visible failure notice closes even with auto select off');
+
   let list = [area('VIP1', 5480), area('A1', 4880), area('A2', 4880)];
   let p = await page({ TicketplusAutoSelect: true, TicketplusPrice: '4880', TicketplusTicketNumber: '2' }, list);
   p.run();
@@ -224,6 +245,21 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   p.run();
   assert.deepEqual(list.map(a => a.count()), [[0], [0, 2], [0]], 'open the added area and pick the added ticket, not the first one');
   assert.equal(list[0].clicks.header, 0, 'added tickets win over the price list');
+
+  list = [area('A1', 4880, '剩餘 2', 4, [['全票', 4880]]), area('A2', 5480)];
+  p = await page({ TicketplusAutoSelect: true, TicketplusPrice: '5480',
+    'TicketplusTicketScope:abc': ['A1 / 已售完票種'] }, list);
+  p.run();
+  assert.equal(list[1].clicks.header, 0, 'price fallback is off by default');
+  p.change({ TicketplusPriceFallback: { newValue: true } }, 'local');
+  p.run();
+  assert.deepEqual(list.map(a => a.count()), [[0], [2]], 'loaded area without the scoped ticket falls back to the price list');
+
+  list = [area('A1', 4880, '剩餘 2', 1), area('A2', 5480), area('A3', 5480)];
+  p = await page({ TicketplusAutoSelect: true, TicketplusPriceFallback: true, TicketplusPrice: '5480',
+    'TicketplusTicketScope:abc': ['A1 / 全票', 'A3 / 全票'] }, list);
+  p.run();
+  assert.deepEqual(list.map(a => a.count()), [[0], [0], [2]], 'try all scoped tickets before price fallback');
 
   list = [area('A1', 4880), area('A2', 5480)];
   p = await page({ TicketplusAutoSelect: true, TicketplusPrice: '4880', 'TicketplusTicketScope:abc': ['A2 / 全票'] }, list);
@@ -433,13 +469,20 @@ async function page(settings, list, serialInputs = [], focusedInput = null, Audi
   p.run();
   list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
   p.run();
-  assert.equal(peak, 0.00875, 'stock notification uses the updated volume');
+  assert.equal(peak, 0.013125, 'stock notification uses the updated volume');
   p.change({ TicketplusSoundVolume: { newValue: 0 } }, 'local');
   list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 0 NT.800';
   p.run();
   list[0].querySelector('.v-expansion-panel-header').textContent = 'A1 剩餘 1 NT.800';
   p.run();
   assert.equal(tones, 6, 'muted stock notification creates no tones');
+  flat = [ticketRow('身心障礙票', 800).row];
+  p = await page({ TicketplusAutoSelect: true }, [area('非輪椅身障區', 800, '剩餘 2')]);
+  p.refresh(1000);
+  assert.match(p.countdown.textContent, /^更新票數：\d+ 秒$/, 'accessible stock does not pause refresh');
+  p.change({ TicketplusIgnoreDisabledArea: { newValue: false } }, 'local');
+  p.refresh(1000);
+  assert.equal(p.countdown.textContent, '偵測到有票，暫停更新', 'stock counts again when the setting is disabled');
   flat = [];
   for (const [min, max, random, expected] of [[1, 3, 0, 1], [1, 3, 0.999, 3], [2, 2, 0.5, 2], [5, 2, 0.999, 5], [0, -2, 0, 1], ['bad', 'bad', 0, 4]]) {
     p = await page({ TicketplusAutoSelect: true, TicketplusRefreshMin: min, TicketplusRefreshMax: max }, []);

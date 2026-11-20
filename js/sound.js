@@ -2,8 +2,7 @@
 function playTikitikiDing(audio, percent = 50) {
   const level = Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 50;
   if (level === 0) return;
-  // Cap the signal at the original quiet level; device/system volume still affects loudness.
-  const peak = 0.035 * level / 100;
+  const peak = 0.0525 * level / 100;
   for (const offset of [0, 0.3]) {
     const start = audio.currentTime + offset;
     const tone = audio.createOscillator();

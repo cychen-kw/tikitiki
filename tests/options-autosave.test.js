@@ -115,6 +115,18 @@ vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../options
   element('TicketplusPriceInput').blur({ target: { value: '  ' } });
   await vm.runInContext('saveQueue', context);
   assert.equal(writes.at(-1).TicketplusPrice, '5480', 'leaving an empty field changes nothing');
+  const invalidPrice = { value: '0,abc' };
+  const writesBeforeInvalid = writes.length;
+  element('TicketplusPriceInput').blur({ target: invalidPrice });
+  await vm.runInContext('saveQueue', context);
+  assert.equal(writes.length, writesBeforeInvalid, 'invalid prices are not saved');
+  assert.equal(invalidPrice.value, '0,abc', 'invalid input remains available for correction');
+  assert.match(element('TicketplusPriceError').textContent, /大於 0/);
+  element('TicketplusPriceInput').blur({ target: { value: '3880' } });
+  const priceBox = element('TicketplusPriceBox');
+  priceBox.children[1].children[0].click();
+  await vm.runInContext('saveQueue', context);
+  assert.equal(writes.at(-1).TicketplusPrice, '3880,5480', 'the move button updates the price order');
   element('TicketplusHideSoldOut').type = 'checkbox';
   handlers.change({ target: { id: 'TicketplusHideSoldOut', type: 'checkbox', checked: true } });
   await vm.runInContext('saveQueue', context);

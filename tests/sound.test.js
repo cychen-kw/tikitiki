@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../js/sound.js'), 'utf8'), context);
-for (const [level, expected] of [[undefined, 0.0175], [0, 0], [-10, 0], [25, 0.00875], [100, 0.035], [200, 0.035], [NaN, 0.0175], [Infinity, 0.0175], ['100', 0.0175]]) {
+for (const [level, expected] of [[undefined, 0.02625], [0, 0], [-10, 0], [25, 0.013125], [100, 0.0525], [200, 0.0525], [NaN, 0.02625], [Infinity, 0.02625], ['100', 0.02625]]) {
   const peaks = [], tails = [], starts = [];
   const audio = {
     currentTime: 10, destination: {},

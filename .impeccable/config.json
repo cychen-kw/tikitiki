@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "options.html"
+        ],
+        "createdAt": "2026-11-20T10:55:23.500Z",
+        "reason": "Agent: DESIGN.md specifies a 3px platform-color top border and 12px radius for settings cards"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "css/options.css"
+        ],
+        "createdAt": "2026-11-20T10:56:47.552Z",
+        "reason": "Agent: DESIGN.md specifies a 3px platform-color top border and 12px radius for settings cards"
+      }
+    ]
+  }
+}

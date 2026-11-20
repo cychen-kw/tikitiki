@@ -262,13 +262,16 @@
       <input type="number" id="TicketplusRefreshMax" class="option" min="1" step="1" value="8">
       <p class="hint">最低 1 秒，每次從範圍內隨機選擇整數秒。兩者相同可固定間隔；最大值小於最小值時，以最小值為準。</p>
       <label class="field-label" for="TicketplusPriceInput">票價</label>
-      <div class="tag-input-row"><div class="tag-input" id="TicketplusPriceBox"><input type="text" id="TicketplusPriceInput" placeholder="例如 5480，按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="TicketplusPriceClear">清空</button></div>
+      <div class="tag-input-row"><div class="tag-input" id="TicketplusPriceBox"><input type="text" id="TicketplusPriceInput" inputmode="numeric" aria-describedby="TicketplusPriceError" placeholder="例如 5480，按 Enter 或點其他地方即新增"></div><button type="button" class="clear-btn" id="TicketplusPriceClear">清空</button></div>
+      <p class="hint price-error" id="TicketplusPriceError" role="status"></p>
       <input type="hidden" id="TicketplusPrice">
       <p class="hint">支援「選擇票種」與「票區一覽」兩種頁面。依票價加入順序優先，同票價依畫面由上到下選第一個。可拖曳排序。下方已加入票種時優先使用票種清單；兩者皆空時依畫面順序選擇全區。開啟自動選區後，依設定的秒數範圍隨機更新票數，小工具顯示倒數；偵測到有票、已有選票或手動接管時暫停。略過已售完與剩餘不足區域；開啟「忽略身障區」時略過身障、身心障礙及輪椅區域。</p>
     </section>
     <section class="card">
       <h2 class="card-title"><span class="card-icon">📋</span>已加入的票種</h2>
-      <p class="hint">在購票頁點開票區後，按票種旁的「＋」加入（記為「票區 / 票種」）；已加入時只依此清單選票，清空後改用上方票價。拖曳 ⠿ 調整順序 · 點活動名稱前往購票</p>
+      <p class="hint">在購票頁點開票區後，按票種旁的「＋」加入。拖曳 ⠿ 調整順序 · 點活動名稱前往購票</p>
+      <label class="row"><input type="checkbox" id="TicketplusPriceFallback" class="option toggle-switch" aria-describedby="TicketplusPriceFallbackHint"><span>指定票種都無法選取時，改用票價清單</span></label>
+      <p class="hint" id="TicketplusPriceFallbackHint">關閉時，有指定票種的活動只依指定票種選票。開啟後需設定上方票價才有備援。</p>
       <p id="TicketplusScopeStatus" class="hint" role="status"></p>
       <div class="scope-table-wrap">
         <table class="scope-table">

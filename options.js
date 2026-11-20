@@ -5,7 +5,7 @@ const optionDefaults = {
     VerifyCode: "", KktixAutoSelect: false, KktixTicketNumber: "2", KktixQualificationCode: "",
     KktixTieBreak: "top", KktixAllowInsufficient: false, KktixHideDisabledArea: false,
     IbonAutoSelect: false, IbonAreaName: '', IbonTicketNumber: '2', IbonAllowSeparated: false,
-    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50
+    TicketplusAutoSelect: false, TicketplusPrice: '', TicketplusPriceFallback: false, TicketplusTicketNumber: '2', TicketplusHideSoldOut: false, TicketplusIgnoreDisabledArea: true, TicketplusSerialNumber: '', TicketplusNextOnlySpecified: true, TicketplusNextUrl: '', TicketplusRefreshMin: 4, TicketplusRefreshMax: 8, TicketplusSoundVolume: 50
 };
 let optionsReady = false;
 let statusTimer;
@@ -13,6 +13,7 @@ let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
     if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName', 'TicketplusPrice'].includes(key)) {
+        if (optionsReady && document.getElementById(key).value === value) return;
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
     }
@@ -84,6 +85,8 @@ async function renderTicketScope(platform) {
     try {
         const items = await chrome.storage.local.get(null);
         const body = document.getElementById(platform + 'ScopeList');
+        const focused = document.activeElement?.dataset;
+        let restoreHandle;
         body.replaceChildren();
         let count = 0;
         for (const [key, ids] of Object.entries(items)) {
@@ -129,6 +132,9 @@ async function renderTicketScope(platform) {
                 handle.className = 'clear-btn scope-drag';
                 handle.textContent = '⠿';
                 handle.draggable = true;
+                handle.dataset.scopeKey = key;
+                handle.dataset.ticketId = id;
+                if (focused?.scopeKey === key && focused.ticketId === id) restoreHandle = handle;
                 handle.title = '拖曳排序，或按 Alt + 上下方向鍵移動';
                 handle.setAttribute('aria-label', '移動 ' + (info?.ticketName || id));
                 row.children[0].appendChild(handle);
@@ -179,6 +185,7 @@ async function renderTicketScope(platform) {
         }
         document.getElementById(platform + 'ScopeClear').disabled = count === 0;
         status.textContent = count ? `已加入 ${count} 個票種` : '尚未加入任何票種';
+        restoreHandle?.focus();
     } catch (error) {
         status.textContent = '讀取清單失敗，請重新開啟設定頁。';
         console.error(error);
@@ -194,7 +201,6 @@ async function deleteTicketScope(platform, key, id) {
             if (!key || key === scopeKey) updates[scopeKey] = key && id !== undefined ? ids.filter(value => value !== id) : [];
         }
         await chrome.storage.local.set(updates);
-        await renderTicketScope(platform);
     } catch (error) {
         document.getElementById(platform + 'ScopeStatus').textContent = '移除失敗，請重試。';
         console.error(error);
@@ -210,7 +216,6 @@ async function moveTicketScope(platform, key, id, targetId) {
         if (from < 0 || to < 0 || from === to) return;
         ids.splice(to, 0, ids.splice(from, 1)[0]);
         await chrome.storage.local.set({ [key]: ids });
-        await renderTicketScope(platform);
     } catch (error) {
         document.getElementById(platform + 'ScopeStatus').textContent = '排序儲存失敗，請重試。';
         console.error(error);
@@ -238,12 +243,14 @@ function renderTags(boxId, inputId, hiddenId, tags) {
     box.querySelectorAll('.tag').forEach(el => el.remove());
     let input = document.getElementById(inputId);
     let draggedIndex = null;
-    function moveTag(from, to) {
+    function moveTag(from, to, direction) {
         if (from === to || to < 0 || to >= tags.length) return;
         tags.splice(to, 0, tags.splice(from, 1)[0]);
         renderTags(boxId, inputId, hiddenId, tags);
         saveOption(hiddenId, tags.join(','));
-        box.querySelectorAll('.tag')[to]?.focus();
+        const moved = box.querySelectorAll('.tag')[to];
+        const button = direction && moved?.children[direction === -1 ? 0 : 1];
+        (button && !button.disabled ? button : moved)?.focus();
     }
 
     tags.forEach((tag, index) => {
@@ -273,6 +280,20 @@ function renderTags(boxId, inputId, hiddenId, tags) {
             chip.addEventListener('dragend', () => { draggedIndex = null; });
         }
 
+        if (hiddenId === 'TicketplusPrice') {
+            for (const [direction, label, symbol] of [[-1, '上移', '↑'], [1, '下移', '↓']]) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'tag-move';
+                button.textContent = symbol;
+                button.title = label;
+                button.setAttribute('aria-label', label + '票價 ' + tag);
+                button.disabled = index + direction < 0 || index + direction >= tags.length;
+                button.addEventListener('click', () => moveTag(index, index + direction, direction));
+                chip.appendChild(button);
+            }
+        }
+
         let remove = document.createElement('button');
         remove.type = 'button';
         remove.setAttribute('aria-label', '移除 ' + tag);
@@ -293,6 +314,15 @@ function renderTags(boxId, inputId, hiddenId, tags) {
 
 function setupTagInput(boxId, inputId, hiddenId) {
     const input = document.getElementById(inputId);
+    const priceError = hiddenId === 'TicketplusPrice' ? document.getElementById('TicketplusPriceError') : null;
+    function showPriceError(message) {
+        if (!priceError) return;
+        priceError.textContent = message;
+        input.setAttribute('aria-invalid', String(Boolean(message)));
+    }
+    if (priceError) {
+        input.addEventListener('input', () => showPriceError(''));
+    }
     input.addEventListener('keydown', e => {
         if (e.key !== 'Enter' || e.isComposing) return;
         e.preventDefault();
@@ -303,13 +333,23 @@ function setupTagInput(boxId, inputId, hiddenId) {
 
     function commit(e) {
         let value = e.target.value.trim();
-        e.target.value = '';
-        if (!value) return;
-
-        let tags = document.getElementById(hiddenId).value.split(',').filter(Boolean);
+        if (!value) {
+            e.target.value = '';
+            showPriceError('');
+            return;
+        }
         // Normalize a formatted price before using the legacy comma delimiter.
         if (/^\d{1,3}(,\d{3})+$/.test(value)) value = value.replace(/,/g, '');
-        tags.push(...value.split(',').map(word => word.trim()).filter(Boolean));
+        const added = value.split(',').map(word => word.trim()).filter(Boolean);
+        if (priceError && (!added.length || added.some(price => !/^\d+$/.test(price) ||
+            !Number.isSafeInteger(Number(price)) || Number(price) <= 0))) {
+            showPriceError('請輸入大於 0 的整數票價。');
+            return;
+        }
+        e.target.value = '';
+        showPriceError('');
+        const tags = document.getElementById(hiddenId).value.split(',').filter(Boolean);
+        tags.push(...added);
         renderTags(boxId, inputId, hiddenId, tags);
         saveOption(hiddenId, tags.join(','));
     }
@@ -319,6 +359,10 @@ function setupClearButton(clearBtnId, boxId, inputId, hiddenId) {
     document.getElementById(clearBtnId).addEventListener('click', () => {
         renderTags(boxId, inputId, hiddenId, []);
         document.getElementById(inputId).value = '';
+        if (hiddenId === 'TicketplusPrice') {
+            document.getElementById(inputId).setAttribute('aria-invalid', 'false');
+            document.getElementById('TicketplusPriceError').textContent = '';
+        }
         saveOption(hiddenId, '');
     });
 }
