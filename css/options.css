@@ -193,6 +193,7 @@ body {
   z-index: 10;
   background: var(--bg);
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--border);
@@ -214,29 +215,15 @@ body {
 }
 
 .tab-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
+  flex: none;
+  object-fit: contain;
 }
 
-.tab-icon-tixcraft {
-  background: var(--tixcraft);
-}
-
-.tab-icon-kktix {
-  background: var(--kktix-dark);
-}
-.tab-icon-ibon { background: var(--ibon); }
 .tab-btn[data-tab="ibon"].active { color: var(--ibon-dark); border-bottom-color: var(--ibon); }
 #tab-ibon { --accent: var(--ibon); --accent-dark: var(--ibon-dark); --accent-tint: var(--ibon-tint); }
-.tab-icon-ticketplus { background: var(--ticketplus); }
 .tab-btn[data-tab="ticketplus"].active { color: var(--ticketplus-dark); border-bottom-color: var(--ticketplus); }
+.tab-btn[data-tab="indievox"].active { color: var(--text); border-bottom-color: currentColor; }
+#tab-indievox { --accent: var(--text-muted); --accent-dark: var(--text); --accent-tint: var(--bg); }
 #tab-ticketplus { --accent: var(--ticketplus); --accent-dark: var(--ticketplus-dark); --accent-tint: var(--ticketplus-tint); }
 
 .tab-btn.active {

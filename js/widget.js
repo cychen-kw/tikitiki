@@ -1,9 +1,10 @@
 // Shared floating clock and platform-specific auto-click toggle.
-function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
+function addClockWidget(onToggleOn, settingKey = globalThis.location?.hostname === 'www.indievox.com' ? 'IndieVoxAutoClickArea' : 'AutoClickArea') {
+  const indieVox = settingKey === 'IndieVoxAutoClickArea';
   const kktix = settingKey === 'KktixAutoSelect';
   const ticketplus = settingKey === 'TicketplusAutoSelect';
   const ibon = settingKey === 'IbonAutoSelect' || ticketplus;
-  const orderKey = ibon ? 'IbonTieBreak' : kktix ? 'KktixTieBreak' : 'AutoClickTieBreak';
+  const orderKey = ibon ? 'IbonTieBreak' : kktix ? 'KktixTieBreak' : indieVox ? 'IndieVoxAutoClickTieBreak' : 'AutoClickTieBreak';
   const defaultOrder = kktix ? 'top' : 'keyword';
   const orderNames = {
     top: '畫面順序（由上到下）', bottom: '畫面順序（由下到上）',
@@ -127,7 +128,7 @@ function addClockWidget(onToggleOn, settingKey = 'AutoClickArea') {
     let settingsBtn = widget.querySelector("#tikitikiSettings");
     settingsBtn.addEventListener("mouseenter", () => settingsBtn.style.background = "#f2f2f2");
     settingsBtn.addEventListener("mouseleave", () => settingsBtn.style.background = "transparent");
-    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: ticketplus ? 'ticketplus' : ibon ? 'ibon' : kktix ? 'kktix' : 'tixcraft' }));
+    settingsBtn.addEventListener("click", () => chrome.runtime.sendMessage({ tikitikiOpenOptions: true, platform: ticketplus ? 'ticketplus' : ibon ? 'ibon' : kktix ? 'kktix' : indieVox ? 'indievox' : 'tixcraft' }));
 
     let minimized = false;
     minimizeBtn.addEventListener("click", () => {

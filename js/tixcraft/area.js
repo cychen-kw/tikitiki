@@ -1,4 +1,13 @@
 // area
+const indieVoxArea = globalThis.location?.hostname === 'www.indievox.com';
+const areaSettingKey = key => indieVoxArea ? 'IndieVox' + key : key;
+
+function readAreaSettings(defaults, callback) {
+  const keys = Object.keys(defaults);
+  chrome.storage.local.get(Object.fromEntries(keys.map(key => [areaSettingKey(key), defaults[key]])), items => {
+    callback(Object.fromEntries(keys.map(key => [key, items[areaSettingKey(key)]])));
+  });
+}
 const badAreaArray = ["遮擋", "護網", "鐵網", "不完整"];
 
 const highlightStyle = document.createElement('style');
@@ -28,12 +37,12 @@ function highlightAreas(keywordString, priceMatch) {
 let currentPriceMatch = true;
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.AreaKeywordPriceMatch) currentPriceMatch = changes.AreaKeywordPriceMatch.newValue;
-  if (changes.AutoClickAreaName) highlightAreas(changes.AutoClickAreaName.newValue || '', currentPriceMatch);
-  if (changes.AutoClickArea?.newValue === true) clickCurrentArea();
+  if (changes[areaSettingKey('AreaKeywordPriceMatch')]) currentPriceMatch = changes[areaSettingKey('AreaKeywordPriceMatch')].newValue;
+  if (changes[areaSettingKey('AutoClickAreaName')]) highlightAreas(changes[areaSettingKey('AutoClickAreaName')].newValue || '', currentPriceMatch);
+  if (changes[areaSettingKey('AutoClickArea')]?.newValue === true) clickCurrentArea();
 });
 
-function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient, priceMatch) {
+function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsufficient, priceMatch, ignoreDisabled = false) {
   // no keywords means every area is acceptable
   let keywords = keywordString.length ? keywordString.split(',') : [];
   let candidates = [];
@@ -45,6 +54,7 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
     if (!a) return; // sold out / unavailable, no link to click
 
     let text = li.textContent;
+    if (ignoreDisabled && /身障|身心障礙|輪椅/.test(text)) return;
     let keywordIndex = keywords.length ? keywords.findIndex(el => keywordMatches(text, el, priceMatch)) : 0;
     if (keywordIndex === -1) return;
 
@@ -89,9 +99,9 @@ function runAutoClickArea(keywordString, tieBreak, neededTickets, allowInsuffici
   candidates[0].a.click();
 }
 
-chrome.storage.local.get({
+readAreaSettings({
   HideBadArea: false,
-  HideDisabledArea: false,
+  HideDisabledArea: indieVoxArea,
   HideSoldOutArea: true,
   HiddenAreaName: "",
   AreaName: "",
@@ -124,7 +134,7 @@ chrome.storage.local.get({
     });
   }
 
-  if (items.HideDisabledArea) {
+  if (!indieVoxArea && items.HideDisabledArea) {
     document.querySelectorAll("ul.area-list > li").forEach(li => {
       if (/身障|身心障礙|輪椅/.test(li.textContent)) {
         li.style.display = "none";
@@ -144,15 +154,15 @@ chrome.storage.local.get({
   });
 
   if (items.AutoClickArea) {
-    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient, items.AreaKeywordPriceMatch);
+    runAutoClickArea(items.AutoClickAreaName, items.AutoClickTieBreak, neededTickets, items.AutoClickAllowInsufficient, items.AreaKeywordPriceMatch, indieVoxArea && items.HideDisabledArea);
   }
 
   addClockWidget();
 });
 
 function clickCurrentArea() {
-  chrome.storage.local.get({ AutoClickAreaName: '', AutoClickTieBreak: 'keyword', TicketNumber: 0, AutoClickAllowInsufficient: false, AreaKeywordPriceMatch: true }, current => {
+  readAreaSettings({ AutoClickAreaName: '', AutoClickTieBreak: 'keyword', TicketNumber: 0, AutoClickAllowInsufficient: false, AreaKeywordPriceMatch: true, HideDisabledArea: indieVoxArea }, current => {
     const needed = Number(current.TicketNumber) > 0 ? Number(current.TicketNumber) : 1;
-    runAutoClickArea(current.AutoClickAreaName, current.AutoClickTieBreak, needed, current.AutoClickAllowInsufficient, current.AreaKeywordPriceMatch);
+    runAutoClickArea(current.AutoClickAreaName, current.AutoClickTieBreak, needed, current.AutoClickAllowInsufficient, current.AreaKeywordPriceMatch, indieVoxArea && current.HideDisabledArea);
   });
 }

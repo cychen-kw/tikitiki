@@ -1,7 +1,7 @@
 {
   "name": "TikiTiki",
   "description": "有票噴霧",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "permissions": [ "activeTab", "storage" ],
   "background": {
     "service_worker": "background.js"
@@ -72,6 +72,26 @@
       "matches" : [ "https://tixcraft.com/ticket/verify/*" ],
       "run_at": "document_end",
       "js" : [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/verify.js" ]
+    },
+    {
+      "matches": [ "https://www.indievox.com/activity/detail/*" ],
+      "run_at": "document_idle",
+      "js": [ "js/tixcraft/gamelink.js", "js/indievox/detail.js" ]
+    },
+    {
+      "matches": [ "https://www.indievox.com/activity/game/*" ],
+      "run_at": "document_idle",
+      "js": [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/gamelink.js", "js/tixcraft/game.js" ]
+    },
+    {
+      "matches": [ "https://www.indievox.com/ticket/area/*" ],
+      "run_at": "document_idle",
+      "js": [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/area.js" ]
+    },
+    {
+      "matches": [ "https://www.indievox.com/ticket/ticket/*" ],
+      "run_at": "document_idle",
+      "js": [ "js/tixcraft/login.js", "js/widget.js", "js/tixcraft/ticket.js" ]
     },
     {
       "matches" : [ "https://kktix.com/events/*/registrations/new*" ],

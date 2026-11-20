@@ -3,9 +3,25 @@
 function linkGameSessions() {
   let activityId = location.pathname.split("/").pop();
 
+  function linkCell(cell, url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.style.color = '#1a56b0';
+    link.style.textDecoration = 'underline';
+    while (cell.firstChild) link.appendChild(cell.firstChild);
+    cell.appendChild(link);
+    return link;
+  }
+
   function apply() {
     document.querySelectorAll("#gameList tbody tr").forEach(tr => {
-      let nameCell = tr.querySelectorAll("td")[1];
+      const [, nameCell, venueCell] = tr.querySelectorAll('td');
+      const venue = venueCell?.textContent.trim();
+      if (venue && !venueCell.querySelector('a')) {
+        const mapLink = linkCell(venueCell, 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(venue));
+        mapLink.target = '_blank';
+        mapLink.rel = 'noopener noreferrer';
+      }
       if (!nameCell) return;
       if (nameCell.querySelector("a")) return;
 
@@ -17,12 +33,7 @@ function linkGameSessions() {
           link = "/ticket/area/" + activityId + "/" + sessionId;
         }
       }
-      if (link) {
-        let a = document.createElement("a");
-        a.href = link;
-        while (nameCell.firstChild) a.appendChild(nameCell.firstChild);
-        nameCell.appendChild(a);
-      }
+      if (link) linkCell(nameCell, link);
     });
   }
 

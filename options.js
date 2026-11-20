@@ -1,4 +1,5 @@
 const optionDefaults = {
+    IndieVoxAutoClickArea: false, IndieVoxAutoClickAreaName: '', IndieVoxHideDisabledArea: true, IndieVoxTicketNumber: 0,
     ProgramOnly: false, TicketNumber: 0, HideBadArea: false, HideDisabledArea: false,
     HideSoldOutArea: true, HiddenAreaName: "", AreaName: "", AreaKeywordPriceMatch: true, AutoClickArea: false,
     AutoClickAreaName: "", AutoClickTieBreak: "keyword", AutoClickAllowInsufficient: false,
@@ -12,7 +13,7 @@ let statusTimer;
 let saveQueue = Promise.resolve();
 
 function applyOption(key, value) {
-    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName', 'TicketplusPrice'].includes(key)) {
+    if (['AreaName', 'HiddenAreaName', 'AutoClickAreaName', 'IbonAreaName', 'IndieVoxAutoClickAreaName', 'TicketplusPrice'].includes(key)) {
         if (optionsReady && document.getElementById(key).value === value) return;
         renderTags(key + 'Box', key + 'Input', key, value ? value.split(',') : []);
         return;
@@ -58,7 +59,7 @@ async function restore_options() {
         const items = await chrome.storage.local.get({ ...optionDefaults, OptionsLastTab: 'tixcraft' });
         if (!tabChanged) {
             const sourceTab = typeof location === 'undefined' ? '' : location.hash.slice(1);
-            const explicitTab = ['tixcraft', 'kktix', 'ibon', 'ticketplus'].includes(sourceTab);
+            const explicitTab = ['tixcraft', 'kktix', 'ibon', 'ticketplus', 'indievox'].includes(sourceTab);
             selectTab(explicitTab ? sourceTab : items.OptionsLastTab);
             if (explicitTab) {
                 chrome.storage.local.set({ OptionsLastTab: sourceTab }).catch(error => {
@@ -257,7 +258,7 @@ function renderTags(boxId, inputId, hiddenId, tags) {
         let chip = document.createElement('span');
         chip.className = 'tag';
         chip.textContent = tag;
-        if (['AutoClickAreaName', 'IbonAreaName', 'TicketplusPrice'].includes(hiddenId)) {
+        if (['AutoClickAreaName', 'IbonAreaName', 'IndieVoxAutoClickAreaName', 'TicketplusPrice'].includes(hiddenId)) {
             chip.draggable = true;
             chip.tabIndex = 0;
             chip.title = '拖曳換順序';
@@ -373,6 +374,8 @@ setupClearButton('HiddenAreaNameClear', 'HiddenAreaNameBox', 'HiddenAreaNameInpu
 setupTagInput('AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
 setupClearButton('AreaNameClear', 'AreaNameBox', 'AreaNameInput', 'AreaName');
 setupClearButton('AutoClickAreaNameClear', 'AutoClickAreaNameBox', 'AutoClickAreaNameInput', 'AutoClickAreaName');
+setupTagInput('IndieVoxAutoClickAreaNameBox', 'IndieVoxAutoClickAreaNameInput', 'IndieVoxAutoClickAreaName');
+setupClearButton('IndieVoxAutoClickAreaNameClear', 'IndieVoxAutoClickAreaNameBox', 'IndieVoxAutoClickAreaNameInput', 'IndieVoxAutoClickAreaName');
 setupTagInput('IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
 setupClearButton('IbonAreaNameClear', 'IbonAreaNameBox', 'IbonAreaNameInput', 'IbonAreaName');
 setupTagInput('TicketplusPriceBox', 'TicketplusPriceInput', 'TicketplusPrice');
@@ -408,7 +411,7 @@ document.getElementById('ver').textContent = " v" + chrome.runtime.getManifest()
 
 let tabChanged = false;
 function selectTab(tab) {
-    if (!['tixcraft', 'kktix', 'ibon', 'ticketplus'].includes(tab)) tab = 'tixcraft';
+    if (!['tixcraft', 'kktix', 'ibon', 'ticketplus', 'indievox'].includes(tab)) tab = 'tixcraft';
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
