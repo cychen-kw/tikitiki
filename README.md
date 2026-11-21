@@ -4,10 +4,14 @@ Chrome 購票輔助擴充功能，支援拓元 tixCraft、iNDIEVOX、KKTIX、ibo
 
 ## 安裝與使用
 
-1. 下載或 clone 此專案。
-2. 開啟 `chrome://extensions`，啟用「開發人員模式」。
-3. 點「載入未封裝項目」，選擇本專案資料夾。
+1. [下載最新版 tikitiki.zip](https://github.com/cychen-kw/tikitiki/releases/latest/download/tikitiki.zip)，解壓縮。
+2. 開啟 `chrome://extensions`，啟用右上角「開發人員模式」。
+3. 點「載入未封裝項目」，選擇解壓後的 `tikitiki` 資料夾（之後請勿刪除或移動此資料夾）。
 4. 點擴充功能圖示，設定各平台的購票偏好。
+
+更新版本時，下載新的 zip 覆蓋原資料夾，再到 `chrome://extensions` 按重新載入。
+
+開發者打包：執行 `scripts/package.sh` 產生 `dist/tikitiki.zip`。
 
 設定會自動儲存。更新程式後，請重新載入擴充功能，再重新整理設定頁與購票頁；修改拓元區域顯示規則後，也需重新整理選區頁。
 
